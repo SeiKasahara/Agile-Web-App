@@ -29,14 +29,26 @@ jobs:
       - name: Run ESLint (JavaScript)
         working-directory: ./frontend
         run: |
-          npx eslint ./js
+            if find ./js -name "*.js" | grep -q .; then
+            npx eslint ./js
+            else
+            echo "No JavaScript files found, skipping ESLint"
+            fi
 
       - name: Run Stylelint (CSS)
         working-directory: ./frontend
         run: |
-          npx stylelint ./css/**/*.css
+            if find ./css -name "*.css" | grep -q .; then
+            npx stylelint ./css/**/*.css
+            else
+            echo "No CSS files found, skipping Stylelint"
+            fi
 
       - name: Run HTMLHint (HTML)
         working-directory: ./frontend
         run: |
-          npx htmlhint ./index.html ./quiz.html ./cv.html
+            if find ./html -name "*.html" | grep -q .; then
+            npx htmlhint ./html/*.html
+            else
+            echo "No HTML files found, skipping HTMLHint"
+            fi
