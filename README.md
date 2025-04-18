@@ -77,3 +77,54 @@ For more detailed information about Flask installation and setup, refer to the [
 | :------- | :---------: | ---------------------------------------------: |
 | 24386873 | Edward Yuan | [@Seikasahara](https://github.com/Seikasahara) |
 | 24146595 | Yechang Wu  |           [@Wycers](https://github.com/wycers) |
+
+## Project Layout
+
+The project follows Flask's recommended layout structure:
+
+```
+Agile-Web-App/
+├── app/                    # Application package
+│   ├── __init__.py        # Application factory
+│   ├── models.py          # Database models
+│   ├── routes/            # Route handlers
+│   │   ├── __init__.py
+│   │   ├── auth.py       # Authentication routes
+│   │   └── main.py       # Main application routes
+│   ├── templates/         # HTML templates
+│   │   ├── base.html     # Base template
+│   │   ├── auth/         # Authentication templates
+│   │   └── main/         # Main application templates
+│   └── static/           # Static files (CSS, JS, images)
+│       ├── css/
+│       ├── js/
+│       └── images/
+├── tests/                 # Test suite
+│   ├── __init__.py
+│   ├── conftest.py
+│   └── test_*.py         # Test modules
+├── .venv/                # Python virtual environment
+├── config.py             # Configuration settings
+├── run.py                # Application entry point
+├── requirements.txt      # Project dependencies
+└── README.md            # Project documentation
+```
+
+### Key Components
+
+- `app/`: The main application package containing all the application code
+  - `__init__.py`: Creates the application instance and initializes extensions
+  - `models.py`: Defines database models using SQLAlchemy
+  - `routes/`: Contains route handlers organized by feature
+  - `templates/`: HTML templates using Jinja2 templating
+  - `static/`: Static files served directly to clients
+
+- `tests/`: Contains the test suite for the application
+  - Uses pytest for testing
+  - Includes fixtures and test modules
+
+- Configuration and Setup:
+  - `config.py`: Application configuration settings
+  - `run.py`: Script to run the development server
+  - `requirements.txt`: Lists all Python dependencies
+  - `.venv/`: Python virtual environment for dependency isolation
