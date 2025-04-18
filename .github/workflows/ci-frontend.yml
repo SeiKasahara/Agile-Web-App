@@ -30,14 +30,29 @@ jobs:
         run: |
           npm install -g eslint stylelint stylelint-config-standard htmlhint
 
-      - name: Run ESLint (JS)
+      - name: Run ESLint (JS) if any .js file exists
         run: |
-          eslint app/frontend/js/**/*.js || exit 1
+          if find app/frontend/js -name "*.js" | grep -q .; then
+            echo "Running ESLint..."
+            eslint app/frontend/js/**/*.js
+          else
+            echo "No JS files found, skipping ESLint."
+          fi
 
-      - name: Run Stylelint (CSS)
+      - name: Run Stylelint (CSS) if any .css file exists
         run: |
-          stylelint app/frontend/css/**/*.css || exit 1
+          if find app/frontend/css -name "*.css" | grep -q .; then
+            echo "Running Stylelint..."
+            stylelint app/frontend/css/**/*.css
+          else
+            echo "No CSS files found, skipping Stylelint."
+          fi
 
-      - name: Run HTMLHint (HTML)
+      - name: Run HTMLHint (HTML) if any .html file exists
         run: |
-          htmlhint app/templates/**/*.html || exit 1
+          if find app/templates -name "*.html" | grep -q .; then
+            echo "Running HTMLHint..."
+            htmlhint app/templates/**/*.html
+          else
+            echo "No HTML files found, skipping HTMLHint."
+          fi
