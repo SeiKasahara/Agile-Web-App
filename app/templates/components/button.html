@@ -22,7 +22,7 @@
     </a>
   {% else %}
     <button type="{{ 'submit' if submit else 'button' }}"
-            class="{{ classes }}"
+            class="{{ classes }} animated-button"
             {% if id %}id="{{ id }}"{% endif %}
             {% if disabled %}disabled{% endif %}>
             {% if icon %}
@@ -33,28 +33,4 @@
       {{ text }}
     </button>
   {% endif %}
-  <script>
-    const btn = document.querySelector('.animated-button');
-    if (btn) {
-      btn.addEventListener('mouseenter', () => {
-        anime({
-          targets: btn,
-          scale: 1.02,
-          boxShadow: '0 0 8px rgba(0,0,0,0.2)',
-          duration: 200,
-          easing: 'easeOutCubic'
-        });
-      });
-  
-      btn.addEventListener('mouseleave', () => {
-        anime({
-          targets: btn,
-          scale: 1,
-          boxShadow: '0 0 0 rgba(0,0,0,0)',
-          duration: 200,
-          easing: 'easeOutCubic'
-        });
-      });
-    }
-  </script>
 {% endmacro %}

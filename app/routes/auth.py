@@ -6,12 +6,12 @@ auth_bp = Blueprint("auth", __name__)
 def signup():
     if request.method == "POST":
         # ...
-        return redirect(url_for("auth.signup"))  # Or redirect elsewhere
+        return redirect(url_for("auth.signup"))  # redirect elsewhere
     return render_template("main/signup.html")
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         # ...
-        return redirect(url_for("auth.login"))  # Or redirect elsewhere
+        return redirect(url_for("auth.login"))  # redirect elsewhere
     return render_template("main/login.html")
