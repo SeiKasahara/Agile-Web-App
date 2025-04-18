@@ -3,13 +3,13 @@ name: Frontend Linting
 on:
   push:
     paths:
-      - "app/frontend/js/**/*.js"
-      - "app/frontend/css/**/*.css"
+      - "app/static/js/**/*.js"
+      - "app/static/css/**/*.css"
       - "app/templates/**/*.html"
   pull_request:
     paths:
-      - "app/frontend/js/**/*.js"
-      - "app/frontend/css/**/*.css"
+      - "app/static/js/**/*.js"
+      - "app/static/css/**/*.css"
       - "app/templates/**/*.html"
 
 jobs:
