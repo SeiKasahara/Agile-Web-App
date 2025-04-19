@@ -1,42 +1,38 @@
 {% macro input_field(name, type="text", placeholder="", value="", required=False, disabled=False, id=None) %}
-  {% set input_id = id if id else name %}
-  {% set base_class = "w-full h-14 px-4 border border-input-border rounded-sm bg-white text-sm text-black 
-  focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out transition-colors" %}
-
+  {% set input_id = <built-in function id> %}
+  {% set base_class = "w-full h-14 px-4 border border-input-border rounded-sm bg-white text-sm text-black
+    focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out transition-colors" %}
   {% if type == "password" %}
     <div class="relative">
-      <input
-        id="{{ input_id }}"
-        name="{{ name }}"
-        type="password"
-        placeholder="{{ placeholder }}"
-        value="{{ value }}"
-        {% if required %}required{% endif %}
-        {% if disabled %}disabled{% endif %}
-        class="{{ base_class }} input-anime"
-      >
+      <input id="{{ input_id }}"
+             name="{{ name }}"
+             type="password"
+             placeholder="{{ placeholder }}"
+             value="{{ value }}"
+             {% if required %}required{% endif %}
+             {% if disabled %}disabled{% endif %}
+             class="{{ base_class }} input-anime">
       <button type="button"
               class="absolute right-4 top-4 w-5 h-5"
               onclick="togglePasswordVisibility('{{ input_id }}')">
         <img id="icon-{{ input_id }}"
+             height="1"
+             width="1"
              src="{{ url_for('static', filename='assets/password-hidden.svg') }}"
              alt="Toggle Password"
              class="w-5 h-5">
       </button>
     </div>
   {% else %}
-    <input
-      id="{{ input_id }}"
-      name="{{ name }}"
-      type="{{ type }}"
-      placeholder="{{ placeholder }}"
-      value="{{ value }}"
-      {% if required %}required{% endif %}
-      {% if disabled %}disabled{% endif %}
-      class="{{ base_class }} input-anime"
-    >
+    <input id="{{ input_id }}"
+           name="{{ name }}"
+           type="{{ type }}"
+           placeholder="{{ placeholder }}"
+           value="{{ value }}"
+           {% if required %}required{% endif %}
+           {% if disabled %}disabled{% endif %}
+           class="{{ base_class }} input-anime">
   {% endif %}
-
   <script>
     function togglePasswordVisibility(inputId) {
       const input = document.getElementById(inputId);

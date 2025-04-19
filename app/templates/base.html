@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FuelPrice Analysis WebApp</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.cdnfonts.com/css/avenir" rel="stylesheet">
-</head>
-
-<body>
-    {# The star canvas #}
-    <canvas id="starfield" class="fixed top-0 left-0 w-full h-full z-0 pointer-events-none"></canvas>
-    <header>
-        <nav>
-            <a href="{{ url_for('main.index') }}">Home</a>
-        </nav>
-    </header>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
-</body>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="{{ url_for('static', filename='js/tailwind.config.js') }}"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="A FuelPrice Application" />
+        <meta name="keywords" content="FuelPrice" />
+        <title>FuelPrice Analysis WebApp</title>
+        <link rel="stylesheet"
+              href="{{ url_for('static', filename='css/style.css') }}">
+        <link href="https://fonts.cdnfonts.com/css/avenir" rel="stylesheet">
+    </head>
+    <body>
+        {# The star canvas #}
+        <canvas id="starfield"
+                class="fixed top-0 left-0 w-full h-full z-0 pointer-events-none"></canvas>
+        <header>
+            <nav>
+                <a href="{{ url_for("main.index") }}">Home</a>
+            </nav>
+        </header>
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </body>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{ url_for('static', filename='js/tailwind.config.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 </html>

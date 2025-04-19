@@ -17,7 +17,7 @@
     "stylelint.validate": [
       "css"
     ],
-    
-  
+    "oxc.enable": true,
+    "htmlhint.enable": false
   }
   
