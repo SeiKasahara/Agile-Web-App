@@ -13,7 +13,7 @@ tailwind.config = {
         xl: "40px",
       },
       fontFamily: {
-        sans: ['"Avenir"', "sans-serif"],
+        sans: ["Avenir", "sans-serif"],
       },
     },
   },
