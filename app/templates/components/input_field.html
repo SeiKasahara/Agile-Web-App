@@ -1,5 +1,5 @@
 {% macro input_field(name, type="text", placeholder="", value="", required=False, disabled=False, id=None) %}
-  {% set input_id = <built-in function id> %}
+  {% set input_id = id if id else 'input-' ~ name %}
   {% set base_class = "w-full h-14 px-4 border border-input-border rounded-sm bg-white text-sm text-black
     focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out transition-colors" %}
   {% if type == "password" %}
