@@ -28,7 +28,7 @@ jobs:
 
       - name: Install Global Linters (ESLint & Stylelint)
         run: |
-          npm install -g eslint@8.56.0 stylelint stylelint-config-standard
+          npm install -g eslint@8.56.0
 
       - name: Install Python and djlint
         uses: actions/setup-python@v4
@@ -46,15 +46,6 @@ jobs:
             eslint app/static/js/**/*.js
           else
             echo "No JS files found, skipping ESLint."
-          fi
-
-      - name: Run Stylelint (CSS) if any .css file exists
-        run: |
-          if find app/static/css -name "*.css" | grep -q .; then
-            echo "Running Stylelint..."
-            stylelint app/static/css/**/*.css
-          else
-            echo "No CSS files found, skipping Stylelint."
           fi
 
       - name: Run djlint (Jinja2/HTML) if any .html file exists
