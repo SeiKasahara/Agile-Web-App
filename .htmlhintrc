@@ -2,7 +2,7 @@
   "tagname-lowercase": true,
   "attr-lowercase": true,
   "attr-value-double-quotes": true,
-  "tag-pair": true,
+  "tag-pair": false,
   "tag-self-close": true,
   "empty-tag": false,
   "attr-no-duplication": true,
