@@ -14,7 +14,22 @@ document.addEventListener("DOMContentLoaded", () => {
       msg.textContent = message;
       input.insertAdjacentElement("afterend", msg);
     }
-    input.classList.add("border-red-500");
+    if (!input.classList.contains("border-red-500")) {
+      input.classList.add("border-red-500");
+      input.style.position = "relative";
+      input.dataset.shaken = "true";
+      anime({
+        targets: input,
+        boxShadow: [
+          "0 0 0px rgba(255,0,0,0)",
+          "0 0 4px rgba(255,0,0,0.8)",
+          "0 0 8px rgba(255,0,0,1)",
+          "0 0 0px rgba(255,0,0,0)",
+        ],
+        duration: 600,
+        easing: "easeInOutQuad",
+      });
+    }
   };
 
   const clearError = (input) => {

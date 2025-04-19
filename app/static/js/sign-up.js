@@ -23,9 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
       input.dataset.shaken = "true";
       anime({
         targets: input,
-        translateX: [-6, 6, -4, 4, -2, 2, 0],
-        duration: 400,
-        easing: "easeInOutSine",
+        boxShadow: [
+          "0 0 0px rgba(255,0,0,0)",
+          "0 0 4px rgba(255,0,0,0.8)",
+          "0 0 8px rgba(255,0,0,1)",
+          "0 0 0px rgba(255,0,0,0)",
+        ],
+        duration: 600,
+        easing: "easeInOutQuad",
       });
     }
   };
@@ -106,11 +111,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateSubmitButton() {
-    const hasError = form.querySelectorAll(".error-message").length > 0;
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    const confirm = confirmInput.value.trim();
     const agreed = agreeCheckbox.checked;
-    signUpButton.disabled = hasError;
 
-    if (hasError || !agreed) {
+    const emailValid = validateEmail(email);
+    const passwordValid = password.length >= 8;
+    const passwordsMatch = !confirm || password === confirm;
+    const allValid = emailValid && passwordValid && passwordsMatch && agreed;
+
+    signUpButton.disabled = !allValid;
+
+    if (!allValid) {
       signUpButton.classList.add(
         "cursor-not-allowed",
         "opacity-60",
