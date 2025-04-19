@@ -28,7 +28,7 @@ jobs:
 
       - name: Install Global Linters (ESLint & Stylelint)
         run: |
-          npm install -g eslint stylelint stylelint-config-standard
+          npm install -g eslint@8.56.0 stylelint stylelint-config-standard
 
       - name: Install Python and djlint
         uses: actions/setup-python@v4
