@@ -5,6 +5,9 @@
       "source.fixAll": "explicit",
       "source.fixAll.eslint": "explicit"
     },
+    "[html][django-html][handlebars][hbs][mustache][jinja][jinja-html][nj][njk][nunjucks][twig]": {
+      "editor.defaultFormatter": "monosans.djlint"
+    },
   
     "eslint.validate": [
       "javascript",
@@ -14,14 +17,7 @@
     "stylelint.validate": [
       "css"
     ],
-
-    "htmlhint.enable": true,
-
-    "files.associations": {
-      "*.html": "html",
-      "*.css": "css",
-      "*.js": "javascript"
-    },
+    
   
   }
   
