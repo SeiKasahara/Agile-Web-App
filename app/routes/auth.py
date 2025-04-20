@@ -15,3 +15,15 @@ def login():
         # ...
         return redirect(url_for("auth.login"))  # redirect elsewhere
     return render_template("main/login.html")
+
+@auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    if request.method == "POST":
+        # ...
+        return redirect(url_for("auth.login"))  # redirect elsewhere
+    return render_template("main/reset_password.html", token=token)
+
+# Please remove this on product environment.
+@auth_bp.route("/reset-password-demo")
+def reset_password_demo():
+    return render_template("main/reset_password.html", token="demo-token")

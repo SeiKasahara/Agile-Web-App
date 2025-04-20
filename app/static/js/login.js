@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const existing = input.parentNode.querySelector(".error-message");
     if (existing) existing.remove();
     input.classList.remove("border-red-500");
+    delete input.dataset.shaken;
   };
 
   const validateEmailInput = () => {
@@ -107,3 +108,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+// eslint-disable-next-line no-unused-vars
+function openForgotPasswordModal() {
+  const modal = document.getElementById("forgot-password-modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+// eslint-disable-next-line no-unused-vars
+function closeForgotPasswordModal() {
+  const modal = document.getElementById("forgot-password-modal");
+  modal.classList.remove("flex");
+  modal.classList.add("hidden");
+}
+
+// Optional: AJAX-like handling (can replace with real fetch later)
+document
+  .getElementById("forgot-password-form")
+  .addEventListener("submit", (e) => {
+    e.preventDefault();
+    const email = document.getElementById("reset-email").value.trim();
+    const msg = document.getElementById("reset-msg");
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      msg.textContent = "Please enter a valid email address.";
+      msg.classList.remove("text-green-500", "hidden");
+      msg.classList.add("text-red-500");
+      return;
+    }
+
+    // Simulate success
+    msg.textContent = "If the email exists, a reset link has been sent.";
+    msg.classList.remove("text-red-500", "hidden");
+    msg.classList.add("text-green-500");
+
+    // Optionally disable button or close modal after delay
+    document.getElementById("reset-btn").disabled = true;
+  });

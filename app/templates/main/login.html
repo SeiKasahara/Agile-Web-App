@@ -16,7 +16,9 @@
           {{ input_field("password", type="password", placeholder="Password", required=True, id="login-password") }}
           <div class="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0 text-sm">
             <div class="w-full md:w-2/3">{{ button("Log in", id="login-btn", submit=True, disabled=True, variant="black") }}</div>
-            <a href="#" class="underline text-right text-black font-medium">Forget your password?</a>
+            <a href="#"
+               onclick="openForgotPasswordModal()"
+               class="underline text-sm">Forget your password?</a>
           </div>
         </form>
         <div class="flex items-center my-4 text-gray-400 text-sm">
@@ -46,6 +48,22 @@
                class="filter invert w-24 h-24">
         </div>
       </div>
+    </div>
+  </div>
+  <!-- Modal Container -->
+  <div id="forgot-password-modal"
+       class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center hidden z-50">
+    <div class="bg-white text-black rounded-md w-full max-w-md p-6 shadow-lg space-y-4 relative">
+      <!-- Close button -->
+      <button onclick="closeForgotPasswordModal()"
+              class="absolute top-3 right-4 text-gray-500 text-xl">×</button>
+      <h2 class="text-xl font-semibold">Reset your password</h2>
+      <p class="text-sm text-gray-600">Enter the email associated with your account and we'll send you a reset link.</p>
+      <form id="forgot-password-form" class="space-y-4">
+        {{ input_field("reset_email", type="email", placeholder="Your email", required=True, id="reset-email") }}
+        {{ button("Send Reset Link", submit=True, variant="black", id="reset-btn") }}
+        <p id="reset-msg" class="text-sm mt-2 text-gray-600 hidden"></p>
+      </form>
     </div>
   </div>
   <script src="{{ url_for('static', filename='js/login.js') }}"></script>
