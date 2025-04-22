@@ -116,8 +116,10 @@ pytest
 
 ## Members
 
-| UWA ID   |    Name     |                               Github user name |
-| :------- | :---------: | ---------------------------------------------: |
-| 24386873 | Edward Yuan | [@Seikasahara](https://github.com/Seikasahara) |
-| 24146595 | Yechang Wu  |           [@Wycers](https://github.com/wycers) |
+| UWA ID   |      Name       |                                                      Github user name |
+|:---------|:---------------:|----------------------------------------------------------------------:|
+| 24386873 |   Edward Yuan   |                        [@Seikasahara](https://github.com/Seikasahara) |
+| 24146595 |   Yechang Wu    |                                  [@Wycers](https://github.com/wycers) |
+| 24349497 | Zhengdong Jiang |                                    [@dgyz8](https://github.com/dgyz8) |
+
 
