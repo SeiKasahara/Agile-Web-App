@@ -3,6 +3,15 @@
 {% block content %}
 <section class="login-section">
     <h1>Login</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message | safe }}  {# Use safe filter to render HTML links #}
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
     <form method="POST" action="{{ url_for('auth.login') }}" class="auth-form">
         <div class="form-group">
             <label for="username">Username</label>
