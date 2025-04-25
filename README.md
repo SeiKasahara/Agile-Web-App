@@ -120,4 +120,5 @@ pytest
 | :------- | :---------: | ---------------------------------------------: |
 | 24386873 | Edward Yuan | [@Seikasahara](https://github.com/Seikasahara) |
 | 24146595 | Yechang Wu  |           [@Wycers](https://github.com/wycers) |
+| 24638832 | Parna Basak |  @parnabasak (https://github.com/parnabasak)   |
 
