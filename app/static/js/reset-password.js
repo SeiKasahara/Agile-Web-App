@@ -66,16 +66,21 @@ document.addEventListener("DOMContentLoaded", () => {
     strengthText.className = `text-xs mt-1 ${color.replace("bg-", "text-")}`;
   };
 
-  passwordInput.addEventListener("input", () => {
+  function checkPasswordLength() {
     const password = passwordInput.value.trim();
     updatePasswordStrength(password);
 
     if (password.length < 8) {
       showError(passwordInput, "Password must be at least 8 characters.");
+      return false;
     } else {
       clearError(passwordInput);
+      return true;
     }
+  }
 
+  passwordInput.addEventListener("input", () => {
+    checkPasswordLength();
     checkPasswordMatch();
     updateSubmitButton();
   });
@@ -90,8 +95,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const confirm = confirmInput.value.trim();
     if (confirm && password !== confirm) {
       showError(confirmInput, "Passwords do not match.");
+      return false;
     } else {
       clearError(confirmInput);
+      return true;
     }
   }
 
@@ -130,12 +137,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  passwordInput.addEventListener("input", validate);
-  confirmInput.addEventListener("input", validate);
-
   form.addEventListener("submit", (e) => {
-    if (!validate()) {
-      e.preventDefault();
+    e.preventDefault();
+    const valid = checkPasswordMatch() && checkPasswordLength();
+    if (valid) {
+      form.submit();
     }
   });
 });

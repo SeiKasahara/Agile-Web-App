@@ -64,6 +64,13 @@
         {{ button("Send Reset Link", submit=True, variant="black", id="reset-btn") }}
         <p id="reset-msg" class="text-sm mt-2 text-gray-600 hidden"></p>
       </form>
+      <p id="resend-section"
+         class="text-sm text-center text-gray-500 mt-4 hidden">
+        Didn't receive the email?
+        <button id="resend-link-btn" class="underline text-blue-500" type="button">Resend Link</button>
+        <span id="resend-timer" class="ml-2 text-gray-400"></span>
+      </p>
+      <p id="resend-msg" class="text-center text-xs mt-2 hidden"></p>
     </div>
   </div>
   <script src="{{ url_for('static', filename='js/login.js') }}"></script>
