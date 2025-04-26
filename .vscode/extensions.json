@@ -2,7 +2,7 @@
     "recommendations": [
       "dbaeumer.vscode-eslint",          
       "stylelint.vscode-stylelint",   
-      "htmlhint.vscode-htmlhint",    
+      "monosans.djlint",    
       "bradlc.vscode-tailwindcss",  
       "editorconfig.editorconfig"    
     ]

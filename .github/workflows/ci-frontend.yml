@@ -21,38 +21,38 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Install Node.js (for CLI linters)
+      - name: Install Node.js (for JS/CSS linters)
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install Global Linters
+      - name: Install Global Linters (ESLint & Stylelint)
         run: |
-          npm install -g eslint stylelint stylelint-config-standard htmlhint
+          npm install -g eslint@8.56.0
+
+      - name: Install Python and djlint
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install djlint
+        run: |
+          pip install djlint
 
       - name: Run ESLint (JS) if any .js file exists
         run: |
-          if find app/frontend/js -name "*.js" | grep -q .; then
+          if find app/static/js -name "*.js" | grep -q .; then
             echo "Running ESLint..."
-            eslint app/frontend/js/**/*.js
+            eslint app/static/js/**/*.js
           else
             echo "No JS files found, skipping ESLint."
           fi
 
-      - name: Run Stylelint (CSS) if any .css file exists
-        run: |
-          if find app/frontend/css -name "*.css" | grep -q .; then
-            echo "Running Stylelint..."
-            stylelint app/frontend/css/**/*.css
-          else
-            echo "No CSS files found, skipping Stylelint."
-          fi
-
-      - name: Run HTMLHint (HTML) if any .html file exists
+      - name: Run djlint (Jinja2/HTML) if any .html file exists
         run: |
           if find app/templates -name "*.html" | grep -q .; then
-            echo "Running HTMLHint..."
-            htmlhint app/templates/**/*.html
+            echo "Running djlint..."
+            djlint app/templates/
           else
-            echo "No HTML files found, skipping HTMLHint."
+            echo "No HTML files found, skipping djlint."
           fi

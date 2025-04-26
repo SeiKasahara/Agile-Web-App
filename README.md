@@ -1,6 +1,8 @@
-# Agile-Web-App
+# Fuel Price Analysis Web App
 
 The group project for unit CITS5505 agile web development
+
+![logo](/app/static/assets/icon.png)
 
 ## Project Structure
 
@@ -36,6 +38,7 @@ Agile-Web-App/
 ### Key Directories and Files
 
 #### Application Code (`app/`)
+
 - `__init__.py`: Creates and configures the Flask application
 - `models.py`: Database models (currently empty)
 - `routes/`: Contains all route handlers
@@ -48,15 +51,18 @@ Agile-Web-App/
     - `style.css`: Main application styles
 
 #### Testing (`tests/`)
+
 - `test_main.py`: Unit tests for main application routes
 - `__init__.py`: Makes tests a Python package
 
 #### Configuration
+
 - `config.py`: Application configuration settings
 - `requirements.txt`: Python package dependencies
 - `run.py`: Entry point for running the application
 
 #### Development Tools
+
 - `.github/`: GitHub Actions workflows and templates
 - `.vscode/`: VS Code workspace settings
 - `.venv/`: Python virtual environment
@@ -64,17 +70,20 @@ Agile-Web-App/
 ## Setup and Installation
 
 ### Prerequisites
+
 - Python 3.9 or newer
 - pip (Python package installer)
 
 ### Setting up Virtual Environment
 
 1. Create a virtual environment:
+
    ```bash
    python -m venv .venv
    ```
 
 2. Activate the virtual environment:
+
    - On macOS/Linux:
      ```bash
      source .venv/bin/activate
@@ -94,6 +103,7 @@ Agile-Web-App/
 You can run the application in two ways:
 
 1. Using Flask CLI:
+
    ```bash
    export FLASK_APP=app
    export FLASK_ENV=development
@@ -110,6 +120,7 @@ The application will be available at `http://localhost:5000`
 ### Running Tests
 
 To run the test suite:
+
 ```bash
 pytest
 ```
@@ -120,5 +131,4 @@ pytest
 | :------- | :---------: | ---------------------------------------------: |
 | 24386873 | Edward Yuan | [@Seikasahara](https://github.com/Seikasahara) |
 | 24146595 | Yechang Wu  |           [@Wycers](https://github.com/wycers) |
-| 24638832 | Parna Basak |  [@parnabasak](https://github.com/parnabasak)  |
-
+| 24638832 | Parna Basak |   [@parnabasak](https://github.com/parnabasak) |

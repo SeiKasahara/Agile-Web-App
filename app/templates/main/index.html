@@ -1,8 +1,17 @@
+{% from "components/button.html" import button %}
+{% from "components/input_field.html" import input_field %}
+
 {% extends "base.html" %}
 
 {% block content %}
 <div class="container">
-    <h1>Hello, World!</h1>
+    <h1 class="text-4xl">Hello, World!</h1>
     <p>Welcome to our Agile Web App</p>
+    <div class="relative w-full h-24">
+        {{ button("signup test", href="/signup", variant="default") }}
+    </div>
+    <div class="relative w-full h-24">
+        {{ button("login test", href="/login", variant="black") }}
+    </div>
 </div>
 {% endblock %}

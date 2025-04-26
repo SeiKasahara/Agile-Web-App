@@ -8,6 +8,23 @@
       "ecmaVersion": "latest",
       "sourceType": "module"
     },
+    "globals": {
+      "anime": "readonly",
+      "Alpine": "readonly",
+      "AOS": "readonly",
+      "Chart": "readonly",
+      "tailwind": "readonly",
+      "Toastify": "readonly",
+      "Swiper": "readonly",
+      "htmx": "readonly",
+      "hyperscript": "readonly",
+      "Livewire": "readonly",
+      "Turbo": "readonly",
+      "bootstrap": "readonly",
+      "Popper": "readonly",
+      "flowbite": "readonly",
+      "twElements": "readonly"
+    },
     "rules": {
       "indent": ["error", 2],
       "quotes": ["error", "double"],

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "components/input_field.html" import input_field %}
+{% from "components/button.html" import button %}
+{% block title %}Sign Up{% endblock %}
+{% block content %}
+  <div class="min-h-screen flex items-center justify-center bg-black text-white relative z-10">
+    <div class="w-full max-w-5xl flex flex-col md:flex-row shadow-lg relative">
+      <!-- Left side -->
+      <div class="md:w-1/2 w-full px-6 md:px-10 py-8 md:py-16 flex flex-col justify-center space-y-6 ">
+        <h2 class="text-2xl md:text-3xl font-bold">FuelPrice Analysis WebApp</h2>
+        <p class="text-lg md:text-2xl text-gray-400">Access your private fuel price dashboard</p>
+        <div class="mt-8 md:mt-10 flex justify-center md:justify-start">
+          <img src="{{ url_for('static', filename='assets/icon.png') }}"
+               height="1"
+               width="1"
+               class="filter invert w-24 md:w-60"
+               alt="Graphic">
+        </div>
+      </div>
+      <!-- Right side - Sign Up Form -->
+      <div id="signup-form"
+           class="md:w-1/2 w-full md:rounded-md bg-white text-black px-6 md:px-10 py-10 md:py-12">
+        <h2 class="text-xl md:text-2xl font-bold mb-6">Sign up now</h2>
+        <form id="sign-up-form" action="/signup" method="post" class="space-y-4">
+          <!-- Name fields -->
+          <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+            <div class="w-full md:w-1/2">{{ input_field("first_name", placeholder="First name", required=True) }}</div>
+            <div class="w-full md:w-1/2">{{ input_field("last_name", placeholder="Last name", required=True) }}</div>
+          </div>
+          {{ input_field("email", type="email", placeholder="Email address", required=True) }}
+          {{ input_field("password", type="password", placeholder="Password", required=True, id="password-input") }}
+          <div id="password-strength-container"
+               class="w-full h-2 mt-2 bg-gray-200 rounded-sm overflow-hidden">
+            <div id="password-strength-bar"
+                 class="h-full transition-all duration-300 ease-in-out w-0"></div>
+          </div>
+          <p id="password-strength-text" class="text-xs text-gray-500 mt-1"></p>
+          {{ input_field("confirm_password", type="password", placeholder="Confirm Password", required=True, id="confirm-password-input") }}
+          <p class="text-xs text-gray-500">Use 8 or more characters with a mix of letters, numbers & symbols</p>
+          <!-- Checkbox -->
+          <div class="space-y-2 text-sm text-gray-700">
+            <label class="flex items-start space-x-2">
+              <input type="checkbox" id="agree" name="agree" class="mt-1" required>
+              <span>By creating an account, I agree to our <a href="#" class="underline">Terms of use</a> and <a href="#" class="underline">Privacy Policy</a></span>
+            </label>
+          </div>
+          <!-- Submit button -->
+          <div class="mt-4">{{ button("Sign up", id="sign-up-btn", disabled=True, variant="black") }}</div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/sign-up.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/sign-up-effect.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
+{% endblock %}
