@@ -45,7 +45,8 @@
             </label>
           </div>
           <!-- Submit button -->
-          <div class="mt-4">{{ button("Sign up", id="sign-up-btn", disabled=True, variant="black") }}</div>
+          <div class="mt-4">{{ button("Sign up", id="sign-up-btn", submit=True, disabled=True, variant="black") }}</div>
+          <p id="signup-msg" class="hidden text-sm mt-2"></p>
         </form>
       </div>
     </div>

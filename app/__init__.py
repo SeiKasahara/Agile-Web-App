@@ -1,24 +1,29 @@
 import os
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_migrate import Migrate
 from app.models import db, User
 from app.routes import register_routes
 from app.routes.main import main
 from app.routes.auth import auth_bp
+from app.utils.mail import mail
 
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
-
-    # Basic configuration
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    app.config['SECRET_KEY'] = 'your_secret_key'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, '..', 'app.db')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS']  = False
-
+    env = os.getenv('FLASK_ENV', 'development')
+    if env == 'production':
+        app.config.from_object('config.ProductionConfig')
+    else:
+        app.config.from_object('config.DevelopmentConfig')
+        print("loading the development config")
+    # Initialize the mail sys
+    mail.init_app(app)
     # Initialize Database
     db.init_app(app)
+    migrate.init_app(app, db)
+
 
     # Initialize Login Manager
     login_manager = LoginManager()

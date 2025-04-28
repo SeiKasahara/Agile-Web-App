@@ -1,8 +1,38 @@
+function enableFormLeaveProtection(formId) {
+  const form = document.getElementById(formId);
+  if (!form) {
+    console.warn(`Form with ID "${formId}" not found.`);
+    return;
+  }
+
+  let isFormDirty = false;
+
+  form.querySelectorAll("input, textarea, select").forEach((input) => {
+    input.addEventListener("input", () => {
+      isFormDirty = true;
+    });
+  });
+
+  const beforeUnloadHandler = (e) => {
+    if (isFormDirty) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  };
+  window.addEventListener("beforeunload", beforeUnloadHandler);
+
+  form.addEventListener("submit", () => {
+    window.removeEventListener("beforeunload", beforeUnloadHandler);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector("form");
   const passwordInput = form.querySelector("input[name='new_password']");
   const confirmInput = form.querySelector("input[name='confirm_password']");
   const submitButton = form.querySelector("button[type='submit']");
+
+  enableFormLeaveProtection("form");
 
   const showError = (input, message) => {
     const existing = input.parentNode.querySelector(".error-message");
@@ -30,6 +60,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   };
+
+  function showErrorMessage(message) {
+    const msg = document.getElementById("reset-msg");
+    msg.textContent = message;
+    msg.className = "text-red-500 text-center mt-2";
+  }
 
   const clearError = (input) => {
     const existing = input.parentNode.querySelector(".error-message");
@@ -139,9 +175,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+
     const valid = checkPasswordMatch() && checkPasswordLength();
-    if (valid) {
-      form.submit();
-    }
+    if (!valid) return;
+
+    const formData = new FormData(form);
+
+    fetch(window.location.pathname, {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          alert(data.message);
+          setTimeout(() => {
+            window.location.href = "/login";
+          }, 1500);
+        } else {
+          showErrorMessage(data.message);
+        }
+      })
+      .catch(() => {
+        showErrorMessage("Network error. Please try again.");
+      });
   });
 });

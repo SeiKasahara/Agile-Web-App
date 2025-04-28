@@ -1,9 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for, current_app,flash
+from flask import Blueprint, jsonify, render_template, request, redirect, url_for, current_app,flash
 from flask_login import login_user, logout_user, login_required, current_user
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from app.models import db, User
+import os
+from app.utils.mail import send_reset_email 
 
 auth_bp = Blueprint("auth", __name__,template_folder="../../templates/main")
+env = os.getenv('FLASK_ENV', 'development')
 
 def generate_reset_token(user):
     """
@@ -34,36 +37,27 @@ def signup():
         last_name = request.form.get("last_name")
         email = request.form.get("email")
         password = request.form.get("password")
-        confirm_password = request.form.get("confirm_password")
+        verified = False
 
-        if not all([first_name, last_name, email, password, confirm]):
-            flash("All fields are required!", "error")
-            return redirect(url_for("auth.signup"))
-
-        if password != confirm_password:
-            flash("Passwords do not match!", "error")
-            return redirect(url_for("auth.signup"))
         if User.query.filter_by(email=email).first():
-            flash("Email already registered!", "error")
-            return redirect(url_for("auth.signup"))
+            return jsonify({"status": "fail", "message": "Email already registered"}), 400
 
         user = User(
             first_name = first_name,
             last_name = last_name,
             username = f"{first_name} {last_name}",
             email=email,
+            verified=verified
         )
         user.set_password(password)
 
         try:
             db.session.add(user)
             db.session.commit()
-            flash("Account created successfully! Please log in.", "success")
-            return redirect(url_for("auth.login")), 200
+            return jsonify({"status": "success", "message": "Account created"}), 200
         except Exception as e:
             db.session.rollback()
-            flash("Error creating account. Please try again.", "error")
-            return redirect(url_for("auth.signup")), 500
+            return jsonify({"status": "error", "message": "Server error"}), 500
 
     return render_template("main/signup.html")
 
@@ -79,11 +73,9 @@ def login():
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
             login_user(user)
-            flash("Login successful!", "success")
-            return redirect(url_for("main.index")), 200
+            return jsonify({"status": "success", "message": "Login Success"}), 200
         else:
-            flash("Invalid email or password!", "error")
-            return redirect(url_for("auth.login")), 401 # redirect elsewhere
+            return jsonify({"status": "error", "message": "Invalid email or password!"}), 400
 
     return render_template("main/login.html")
 
@@ -105,25 +97,47 @@ def reset_password(token):
 
     if request.method == "POST":
         new_password = request.form.get("new_password")
-        confirm = request.form.get("confirm_password")
-        if new_password != confirm:
-            flash("Passwords do not match.", "error")
-            return redirect(url_for("auth.reset_password", token=token))
-
         user.set_password(new_password)
-        db.session.commit()
-        flash("Your password has been updated. Please log in.", "success")
-        return redirect(url_for("auth.login"))
+        try:
+            db.session.commit()
+            return jsonify({"status": "success", "message": "Your password has been updated. Please log in."}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"status": "error", "message": "Server error"}), 500
 
     return render_template("main/reset_password.html", token=token)
 
+@auth_bp.route("/forgot-password", methods=["POST"])
+def forgot_password():
+    email = request.form.get("email")
 
+    if not email:
+        return jsonify({"status": "error", "message": "Email is required."}), 400
 
+    user = User.query.filter_by(email=email).first()
+
+    if user:
+        token = generate_reset_token(user)
+        reset_link = url_for('auth.reset_password', token=token, _external=True)
+        try:
+            send_reset_email(user.email, reset_link)
+            if env == "development":
+                return jsonify({"status": "success", "message": "A reset link has been sent."}), 200
+        except Exception as e:
+            return jsonify({"status": "error", "message": "Failed to send email."}), 500
+    else:
+        if env == "production":
+        # Prevent brute-force email check 
+            return jsonify({"status": "success", "message": "If the email exists, a reset link has been sent."}), 200
+        else:
+            return jsonify({"status": "error", "message": "Invalid email!"}), 400
 
 
 # Please remove this on product environment.
-@auth_bp.route("/reset-password-demo")
-def reset_password_demo():
-    demo_user = User.query.first()  # Get the first user in the database
-    token = generate_reset_token(demo_user)
-    return redirect(url_for("auth.reset_password", token=token))
+
+if env == "development":
+    @auth_bp.route("/reset-password-demo")
+    def reset_password_demo():
+        demo_user = User.query.first()  # Get the first user in the database
+        token = generate_reset_token(demo_user)
+        return redirect(url_for("auth.reset_password", token=token))
