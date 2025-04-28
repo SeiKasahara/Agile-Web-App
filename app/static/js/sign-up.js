@@ -1,3 +1,31 @@
+function enableFormLeaveProtection(formId) {
+  const form = document.getElementById(formId);
+  if (!form) {
+    console.warn(`Form with ID "${formId}" not found.`);
+    return;
+  }
+
+  let isFormDirty = false;
+
+  form.querySelectorAll("input, textarea, select").forEach((input) => {
+    input.addEventListener("input", () => {
+      isFormDirty = true;
+    });
+  });
+
+  const beforeUnloadHandler = (e) => {
+    if (isFormDirty) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  };
+  window.addEventListener("beforeunload", beforeUnloadHandler);
+
+  form.addEventListener("submit", () => {
+    window.removeEventListener("beforeunload", beforeUnloadHandler);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("sign-up-form");
   const emailInput = form.querySelector("input[name='email']");
@@ -5,6 +33,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const confirmInput = form.querySelector("input[name='confirm_password']");
   const signUpButton = document.getElementById("sign-up-btn");
   const agreeCheckbox = document.getElementById("agree");
+  enableFormLeaveProtection("sign-up-form");
+  const backend_msg = document.getElementById("signup-msg");
 
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -110,6 +140,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function disableButton(btn) {
+    btn.disabled = true;
+    btn.classList.add(
+      "cursor-not-allowed",
+      "opacity-60",
+      "pointer-events-none",
+      "bg-gray-300",
+      "text-gray-500"
+    );
+    btn.classList.remove("bg-black", "text-white", "hover:bg-gray-800");
+  }
+
+  function enableButton(btn) {
+    btn.disabled = false;
+    btn.classList.remove(
+      "cursor-not-allowed",
+      "opacity-60",
+      "pointer-events-none",
+      "bg-gray-300",
+      "text-gray-500"
+    );
+    btn.classList.add("bg-black", "text-white", "hover:bg-gray-800");
+  }
+
   function updateSubmitButton() {
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
@@ -124,27 +178,9 @@ document.addEventListener("DOMContentLoaded", () => {
     signUpButton.disabled = !allValid;
 
     if (!allValid) {
-      signUpButton.classList.add(
-        "cursor-not-allowed",
-        "opacity-60",
-        "pointer-events-none",
-        "bg-gray-300",
-        "text-gray-500"
-      );
-      signUpButton.classList.remove(
-        "bg-black",
-        "text-white",
-        "hover:bg-gray-800"
-      );
+      disableButton(signUpButton);
     } else {
-      signUpButton.classList.remove(
-        "cursor-not-allowed",
-        "opacity-60",
-        "pointer-events-none",
-        "bg-gray-300",
-        "text-gray-500"
-      );
-      signUpButton.classList.add("bg-black", "text-white", "hover:bg-gray-800");
+      enableButton(signUpButton);
     }
   }
 
@@ -153,8 +189,44 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    if (!form.querySelector(".error-message")) {
-      form.submit();
-    }
+    if (form.querySelector(".error-message")) return;
+
+    disableButton(signUpButton);
+
+    const formData = new FormData(form);
+
+    fetch("/signup", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          alert("Account created successfully! Redirecting to login...");
+          setTimeout(() => {
+            window.location.href = "/login";
+          }, 1500);
+        } else if (response.status === 500) {
+          backend_msg.textContent = "Server error. Please try again later.";
+          backend_msg.className = "text-red-500 text-center mt-2";
+          enableButton(signUpButton);
+        } else {
+          response.text().then((html) => {
+            if (html.includes("Email already registered")) {
+              backend_msg.textContent = "This email is already registered.";
+              backend_msg.className = "text-red-500 text-center mt-2";
+            } else {
+              backend_msg.textContent = "Unknown error occurred.";
+              backend_msg.className = "text-red-500 text-center mt-2";
+            }
+            enableButton(signUpButton);
+          });
+        }
+      })
+      .catch(() => {
+        backend_msg.textContent =
+          "Network error. Please check your connection.";
+        backend_msg.className = "text-red-500 text-center mt-2";
+        enableButton(signUpButton);
+      });
   });
 });

@@ -14,12 +14,17 @@ Agile-Web-App/
 │   ├── __init__.py        # Application factory
 │   ├── models.py          # Database models
 │   ├── routes/            # Route handlers
-│   │   ├── __init__.py
+│   │   ├── __init__.py    # Initializes the routes package
+│   │   ├── auth.py       # Authentication routes
+│   │   ├── dashboard.py  # Dashboard routes
 │   │   └── main.py       # Main application routes
 │   ├── templates/         # HTML templates
 │   │   ├── base.html     # Base template
 │   │   └── main/         # Main application templates
-│   │       └── index.html
+│   │       ├── index.html
+│   │       ├── login.html
+│   │       ├── signup.html
+│   │       └── reset_password.html
 │   └── static/           # Static files
 │       └── css/
 │           └── style.css
@@ -127,8 +132,10 @@ pytest
 
 ## Members
 
-| UWA ID   |    Name     |                               Github user name |
-| :------- | :---------: | ---------------------------------------------: |
-| 24386873 | Edward Yuan | [@Seikasahara](https://github.com/Seikasahara) |
-| 24146595 | Yechang Wu  |           [@Wycers](https://github.com/wycers) |
-| 24638832 | Parna Basak |   [@parnabasak](https://github.com/parnabasak) |
+| UWA ID   |      Name       |                                                      Github user name |
+|:---------|:---------------:|----------------------------------------------------------------------:|
+| 24386873 |   Edward Yuan   |                        [@Seikasahara](https://github.com/Seikasahara) |
+| 24638832 |   Parna Basak   |                          [@parnabasak](https://github.com/parnabasak) |
+| 24146595 |   Yechang Wu    |                                  [@Wycers](https://github.com/wycers) |
+| 24349497 | Zhengdong Jiang |                                    [@dgyz8](https://github.com/dgyz8) |
+
