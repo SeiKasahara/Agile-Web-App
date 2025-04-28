@@ -26,6 +26,30 @@ function enableFormLeaveProtection(formId) {
   });
 }
 
+function disableButton(btn) {
+  btn.disabled = true;
+  btn.classList.add(
+    "cursor-not-allowed",
+    "opacity-60",
+    "pointer-events-none",
+    "bg-gray-300",
+    "text-gray-500"
+  );
+  btn.classList.remove("bg-black", "text-white", "hover:bg-gray-800");
+}
+
+function enableButton(btn) {
+  btn.disabled = false;
+  btn.classList.remove(
+    "cursor-not-allowed",
+    "opacity-60",
+    "pointer-events-none",
+    "bg-gray-300",
+    "text-gray-500"
+  );
+  btn.classList.add("bg-black", "text-white", "hover:bg-gray-800");
+}
+
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -89,30 +113,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return true;
     }
   };
-
-  function disableButton(btn) {
-    btn.disabled = true;
-    btn.classList.add(
-      "cursor-not-allowed",
-      "opacity-60",
-      "pointer-events-none",
-      "bg-gray-300",
-      "text-gray-500"
-    );
-    btn.classList.remove("bg-black", "text-white", "hover:bg-gray-800");
-  }
-
-  function enableButton(btn) {
-    btn.disabled = false;
-    btn.classList.remove(
-      "cursor-not-allowed",
-      "opacity-60",
-      "pointer-events-none",
-      "bg-gray-300",
-      "text-gray-500"
-    );
-    btn.classList.add("bg-black", "text-white", "hover:bg-gray-800");
-  }
 
   const updateLoginButton = () => {
     const valid = validateEmailInput() && validatePasswordInput();
@@ -244,24 +244,31 @@ document.addEventListener("DOMContentLoaded", () => {
           msg.textContent = data.message;
           msg.classList.remove("text-red-500", "hidden");
           msg.classList.add("text-green-500");
+          disableButton(emailBtn);
+          resendSection.classList.remove("hidden");
+          startCooldown();
         } else {
           msg.textContent = data.message || "Error occurred.";
           msg.classList.remove("text-green-500", "hidden");
           msg.classList.add("text-red-500");
+          disableButton(emailBtn);
+          resendSection.classList.remove("hidden");
+          startCooldown();
         }
       })
       .catch(() => {
         msg.textContent = "Network error. Please try again.";
         msg.classList.remove("text-green-500", "hidden");
         msg.classList.add("text-red-500");
+        disableButton(emailBtn);
+        resendSection.classList.remove("hidden");
+        startCooldown();
       });
-    disableButton(emailBtn);
-    resendSection.classList.remove("hidden");
-    startCooldown();
   });
 
   resendBtn.addEventListener("click", () => {
     const formData = new FormData();
+    const email = emailInput.value.trim();
     formData.append("email", email);
     fetch("/forgot-password", {
       method: "POST",
