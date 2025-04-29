@@ -11,6 +11,9 @@ fi
 source $VENV_DIR/Scripts/activate
 echo "Activated virtual environment."
 
+echo "install the requirements library"
+pip install -r requirements.txt
+
 if [[ $# -ne 1 ]]; then
     echo "Usage: start [dev] dev-development or [prod] production-environment"
     exit 1
