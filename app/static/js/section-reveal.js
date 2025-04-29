@@ -1,5 +1,7 @@
+// eslint-disable-next-line no-unused-vars
 gsap.registerPlugin(ScrollTrigger);
 
+// eslint-disable-next-line no-unused-vars
 gsap.to("#main-content", {
   scrollTrigger: {
     trigger: "#hero",
@@ -12,6 +14,8 @@ gsap.to("#main-content", {
 });
 
 // Animate section titles
+
+// eslint-disable-next-line no-unused-vars
 gsap.utils.toArray(".section-title").forEach((title) => {
   gsap.to(title, {
     opacity: 1,
@@ -27,6 +31,8 @@ gsap.utils.toArray(".section-title").forEach((title) => {
 });
 
 // Animate feature cards
+
+// eslint-disable-next-line no-unused-vars
 gsap.utils.toArray(".feature-card").forEach((card) => {
   gsap.to(card, {
     opacity: 1,
