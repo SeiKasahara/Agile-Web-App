@@ -31,7 +31,7 @@ def verify_reset_token(token, expires_sec=3600):
 @auth_bp.route("/signup", methods=["GET", "POST"])
 def signup():
     if current_user.is_authenticated:
-        return redirect(url_for("main.index"))
+        return redirect(url_for("dashboard.dashboard_home"))
     if request.method == "POST":
         first_name = request.form.get("first_name")
         last_name = request.form.get("last_name")
@@ -64,7 +64,7 @@ def signup():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("main.index"))
+        return redirect(url_for("dashboard.dashboard_home"))
 
     if request.method == "POST":
         email = request.form.get("email")
