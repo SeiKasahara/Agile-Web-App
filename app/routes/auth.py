@@ -83,7 +83,7 @@ def login():
 def logout():
     logout_user()
     flash("You have been logged out.", "info")
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("main.index"))
 
 @auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
 def reset_password(token):

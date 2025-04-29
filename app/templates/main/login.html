@@ -40,13 +40,9 @@
           <div class="w-full md:w-auto">{{ button("Create an account", href="/signup", variant="black") }}</div>
         </div>
         <div id="bottom-brand"
-             class="flex justify-end items-center space-x-3 mt-2 pr-2">
-          <span class="text-white font-medium md:text-4xl">FuelPrice Analysis WebApp</span>
-          <img src="{{ url_for('static', filename='assets/icon.png') }}"
-               height="1"
-               width="1"
-               alt="Logo"
-               class="filter invert w-24 h-24">
+             class="flex justify-end items-center gap-x-2 mt-1 pr-2">
+          <span class="text-white font-medium text-2xl md:text-4xl whitespace-nowrap">FuelPrice Analysis WebApp</span>
+          <div id="fuel-icon-container" class="w-20 h-20 flex items-center"></div>
         </div>
       </div>
     </div>
@@ -75,6 +71,7 @@
     </div>
   </div>
   <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
   <script src="{{ url_for('static', filename='js/login-effect.js') }}"></script>
   <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
 {% endblock %}

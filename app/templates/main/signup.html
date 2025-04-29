@@ -10,11 +10,7 @@
         <h2 class="text-2xl md:text-3xl font-bold">FuelPrice Analysis WebApp</h2>
         <p class="text-lg md:text-2xl text-gray-400">Access your private fuel price dashboard</p>
         <div class="mt-8 md:mt-10 flex justify-center md:justify-start">
-          <img src="{{ url_for('static', filename='assets/icon.png') }}"
-               height="1"
-               width="1"
-               class="filter invert w-24 md:w-60"
-               alt="Graphic">
+          <div id="fuel-icon-container" class="w-96 h-96"></div>
         </div>
       </div>
       <!-- Right side - Sign Up Form -->
@@ -52,6 +48,7 @@
     </div>
   </div>
   <script src="{{ url_for('static', filename='js/sign-up.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
   <script src="{{ url_for('static', filename='js/sign-up-effect.js') }}"></script>
   <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
 {% endblock %}
