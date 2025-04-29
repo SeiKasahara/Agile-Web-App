@@ -1,12 +1,96 @@
-{% from "components/button.html" import button %}
-{% from "components/input_field.html" import input_field %}
 {% extends "base.html" %}
+{% from "components/button.html" import button %}
+{% block title %}Welcome{% endblock %}
 {% block content %}
-    <div class="container">
-        <h1 class="text-4xl">Hello, World!</h1>
-        <p>Welcome to our Agile Web App</p>
-        <div class="relative w-full h-24">{{ button("signup test", href="/signup", variant="default") }}</div>
-        <div class="relative w-full h-24">{{ button("login test", href="/login", variant="black") }}</div>
-        <div class="relative w-full h-24">{{ button("Logout", href=url_for('auth.logout') , variant="black") }}</div>
+    <!-- Hero Section with Energy Core -->
+    <div id="hero"
+         class="relative h-screen w-full overflow-hidden flex flex-col items-center justify-center">
+        <div id="fuel-icon-container" class="w-48 h-48"></div>
+        <h1 class="mt-10 text-4xl md:text-6xl font-bold text-white text-center">FuelPrice Analysis WebApp</h1>
+        <p class="mt-4 text-lg md:text-xl text-gray-400 text-center">Smarter Fuel Decisions</p>
+        <div class="gap-4 mt-8">
+            {{ button("Create Account", href="/signup", variant="default") }}
+            {{ button("log In", href="/login", variant="black") }}
+        </div>
     </div>
+    <!-- Main Content-->
+    <div id="main-content"
+         class="bg-black pt-20 px-4 opacity-0 transition-opacity duration-1000 text-white">
+        <!-- Features -->
+        <section class="py-20">
+            <div class="max-w-6xl mx-auto px-6 text-center">
+                <h2 class="section-title text-4xl font-bold mb-12 opacity-0">Key Features</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="feature-card p-6 bg-gray-800 rounded-lg shadow opacity-0">
+                        <h3 class="text-xl font-semibold mb-4">Real-time Price Tracking</h3>
+                        <p class="text-gray-400">Stay updated with daily, weekly, and monthly fuel price trends.</p>
+                    </div>
+                    <div class="feature-card p-6 bg-gray-800 rounded-lg shadow opacity-0">
+                        <h3 class="text-xl font-semibold mb-4">Location Comparison</h3>
+                        <p class="text-gray-400">Find the cheapest fuel across your city, region, or state.</p>
+                    </div>
+                    <div class="feature-card p-6 bg-gray-800 rounded-lg shadow opacity-0">
+                        <h3 class="text-xl font-semibold mb-4">Forecast & Alerts</h3>
+                        <p class="text-gray-400">Predict future price drops and set custom price alerts.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Use Cases -->
+        <section class="py-20">
+            <div class="max-w-5xl mx-auto px-6 text-center">
+                <h2 class="section-title text-4xl font-bold mb-12 opacity-0">Who Benefits?</h2>
+                <div class="flex flex-col md:flex-row gap-10 justify-center">
+                    <div class="feature-card max-w-sm mx-auto opacity-0">
+                        <h3 class="text-xl font-semibold mb-3">Everyday Drivers</h3>
+                        <p class="text-gray-400">Save money by filling up at the best times and places.</p>
+                    </div>
+                    <div class="feature-card max-w-sm mx-auto opacity-0">
+                        <h3 class="text-xl font-semibold mb-3">Fleet Managers</h3>
+                        <p class="text-gray-400">Optimize fleet fueling strategies across regions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Live Stats -->
+        <section class="py-20">
+            <div class="max-w-6xl mx-auto px-6 text-center">
+                <h2 class="section-title text-4xl font-bold mb-12 opacity-0">FuelPrice Insights</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="feature-card p-6 bg-gray-800 rounded-lg shadow opacity-0">
+                        <p class="text-5xl font-bold text-blue-400 mb-2">+120K</p>
+                        <p class="text-gray-400">Stations Monitored Worldwide</p>
+                    </div>
+                    <div class="feature-card p-6 bg-gray-800 rounded-lg shadow opacity-0">
+                        <p class="text-5xl font-bold text-blue-400 mb-2">98%</p>
+                        <p class="text-gray-400">Prediction Accuracy Rate</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- FAQ -->
+        <section class="py-20">
+            <div class="max-w-4xl mx-auto px-6">
+                <h2 class="section-title text-4xl font-bold text-center mb-12 opacity-0">Frequently Asked Questions</h2>
+                <div class="space-y-6">
+                    <div class="feature-card opacity-0">
+                        <h4 class="text-xl font-semibold">Is FuelPrice App free?</h4>
+                        <p class="text-gray-400 mt-2">
+                            Yes! Our basic features are free forever. Premium plans available for advanced features.
+                        </p>
+                    </div>
+                    <div class="feature-card opacity-0">
+                        <h4 class="text-xl font-semibold">How often is price data updated?</h4>
+                        <p class="text-gray-400 mt-2">Multiple times per day, ensuring near real-time accuracy.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <!-- Libraries -->
+    <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/section-reveal.js') }}"></script>
 {% endblock %}

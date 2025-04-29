@@ -23,7 +23,9 @@
       "bootstrap": "readonly",
       "Popper": "readonly",
       "flowbite": "readonly",
-      "twElements": "readonly"
+      "twElements": "readonly",
+      "gsap": "readonly",
+      "ScrollTrigger": "readonly"
     },
     "rules": {
       "indent": ["error", 2],

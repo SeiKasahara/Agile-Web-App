@@ -10,13 +10,17 @@
               href="{{ url_for('static', filename='css/style.css') }}">
         <link href="https://fonts.cdnfonts.com/css/avenir" rel="stylesheet">
     </head>
-    <body>
+    <body class="bg-black">
         {# The star canvas #}
         <canvas id="starfield"
                 class="fixed top-0 left-0 w-full h-full z-0 pointer-events-none"></canvas>
         <header>
             <nav>
-                <a href="{{ url_for("main.index") }}">Home</a>
+                <!-- For testing-->
+                <div class="flex gap-4">
+                    <a href="{{ url_for("main.index") }}">Home</a>
+                    {{ button("Logout", href=url_for('auth.logout') , variant="black") }}
+                </div>
             </nav>
         </header>
         <main>
