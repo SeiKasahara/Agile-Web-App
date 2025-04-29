@@ -4,6 +4,8 @@ The group project for unit CITS5505 agile web development
 
 ![logo](/app/static/assets/icon.png)
 
+To start the project, use `start.sh`, [dev] means development branch. [prod] means production branch
+
 ## Project Structure
 
 ### 📁 Project Directory Overview
