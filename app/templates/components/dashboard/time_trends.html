@@ -1,11 +1,97 @@
-{% macro time_trends() %}
+{% macro time_trends(chart_data) %}
 <section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
     <h2 class="text-2xl font-bold mb-6">Price Trends Over Time</h2>
     <div class="flex gap-6 mb-4">
-        <button class="text-blue-400 font-semibold">Daily</button>
-        <button class="hover:text-blue-400">Weekly</button>
-        <button class="hover:text-blue-400">Monthly</button>
+        <button class="time-range-btn px-4 py-2 rounded-md transition-colors text-blue-400 font-semibold bg-blue-400/10" data-range="daily">Daily</button>
+        <button class="time-range-btn px-4 py-2 rounded-md transition-colors hover:text-blue-400 hover:bg-blue-400/10" data-range="weekly">Weekly</button>
+        <button class="time-range-btn px-4 py-2 rounded-md transition-colors hover:text-blue-400 hover:bg-blue-400/10" data-range="monthly">Monthly</button>
     </div>
-    <div class="w-full h-64 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">Line Chart Here</div>
+    <div class="w-full h-64 bg-gray-700 rounded-md">
+        <canvas id="fuelPriceChart"></canvas>
+    </div>
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chartData = {{ chart_data|tojson }};
+    let chart = null;
+    let currentRange = 'daily';
+
+    // Function to update button states
+    function updateButtonStates(activeRange) {
+        const buttons = document.querySelectorAll('.time-range-btn');
+        for (const btn of buttons) {
+            if (btn.dataset.range === activeRange) {
+                btn.classList.add('text-blue-400', 'bg-blue-400/10');
+                btn.classList.remove('hover:text-blue-400', 'hover:bg-blue-400/10');
+            } else {
+                btn.classList.remove('text-blue-400', 'bg-blue-400/10');
+                btn.classList.add('hover:text-blue-400', 'hover:bg-blue-400/10');
+            }
+        }
+    }
+
+    // Function to update the chart
+    function updateChart(range) {
+        if (range === currentRange) return;
+        
+        currentRange = range;
+        updateButtonStates(range);
+        
+        // Show loading state
+        if (chart) {
+            for (const dataset of chart.data.datasets) {
+                dataset.data = [];
+            }
+            chart.update();
+        }
+
+        const data = chartData[range];
+        
+        if (!chart) {
+            // Initialize chart if it doesn't exist
+            const config = {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 500
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Price (cents)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        }
+                    }
+                }
+            };
+            chart = new Chart(document.getElementById('fuelPriceChart'), config);
+        } else {
+            // Update existing chart
+            chart.data = data;
+            chart.update();
+        }
+    }
+
+    // Add click event listeners to buttons
+    for (const btn of document.querySelectorAll('.time-range-btn')) {
+        btn.addEventListener('click', () => {
+            updateChart(btn.dataset.range);
+        });
+    }
+
+    // Initialize with daily data
+    updateChart('daily');
+</script>
 {% endmacro %} 
