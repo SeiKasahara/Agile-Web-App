@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "components/button.html" import button %}
+{% from "components/dashboard_card.html" import dashboard_card %}
 {% block title %}Fuel Dashboard{% endblock %}
 {% block content %}
     <div id="dashboard-layout" class="min-h-screen  text-white flex relative">
@@ -73,22 +74,10 @@
             <div class="p-6 flex flex-col gap-12 overflow-y-auto">
                 <!-- Key Metrics Summary Cards -->
                 <section class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div class="bg-gray-800 rounded-lg p-6 text-center shadow hover:shadow-lg transition">
-                        <h2 class="text-lg font-semibold mb-2">Avg Price</h2>
-                        <p class="text-3xl font-bold text-blue-400">$1.43</p>
-                    </div>
-                    <div class="bg-gray-800 rounded-lg p-6 text-center shadow hover:shadow-lg transition">
-                        <h2 class="text-lg font-semibold mb-2">Volatility</h2>
-                        <p class="text-3xl font-bold text-yellow-400">8%</p>
-                    </div>
-                    <div class="bg-gray-800 rounded-lg p-6 text-center shadow hover:shadow-lg transition">
-                        <h2 class="text-lg font-semibold mb-2">Cheapest</h2>
-                        <p class="text-3xl font-bold text-green-400">$1.22</p>
-                    </div>
-                    <div class="bg-gray-800 rounded-lg p-6 text-center shadow hover:shadow-lg transition">
-                        <h2 class="text-lg font-semibold mb-2">Expensive</h2>
-                        <p class="text-3xl font-bold text-red-400">$1.79</p>
-                    </div>
+                    {{ dashboard_card("Avg Price", "$1.43", "blue") }}
+                    {{ dashboard_card("Volatility", "8%", "yellow") }}
+                    {{ dashboard_card("Cheapest", "$1.22", "green") }}
+                    {{ dashboard_card("Expensive", "$1.79", "red") }}
                 </section>
                 <!-- Time-Based Trends -->
                 <section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
