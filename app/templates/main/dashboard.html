@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% from "components/button.html" import button %}
 {% from "components/dashboard_card.html" import dashboard_card %}
+{% from "components/dashboard/time_trends.html" import time_trends %}
+{% from "components/dashboard/location_heatmap.html" import location_heatmap %}
+{% from "components/dashboard/fuel_comparison.html" import fuel_comparison %}
+{% from "components/dashboard/predictive_analytics.html" import predictive_analytics %}
+{% from "components/dashboard/alerts_factors.html" import alerts_factors %}
+
 {% block title %}Fuel Dashboard{% endblock %}
 {% block content %}
-    <div id="dashboard-layout" class="min-h-screen  text-white flex relative">
+    <div id="dashboard-layout" class="min-h-screen text-white flex relative">
         <!-- Sidebar -->
         <aside id="sidebar"
                class="fixed inset-y-0 left-0 z-40 w-64 bg-black transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between p-6">
@@ -80,53 +86,15 @@
                     {{ dashboard_card("Expensive", "$1.79", "red") }}
                 </section>
                 <!-- Time-Based Trends -->
-                <section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
-                    <h2 class="text-2xl font-bold mb-6">Price Trends Over Time</h2>
-                    <div class="flex gap-6 mb-4">
-                        <button class="text-blue-400 font-semibold">Daily</button>
-                        <button class="hover:text-blue-400">Weekly</button>
-                        <button class="hover:text-blue-400">Monthly</button>
-                    </div>
-                    <div class="w-full h-64 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">Line Chart Here</div>
-                </section>
+                {{ time_trends() }}
                 <!-- Location Heatmap -->
-                <section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
-                    <h2 class="text-2xl font-bold mb-6">Regional Price Heatmap</h2>
-                    <div class="w-full h-64 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">Heatmap Here</div>
-                </section>
+                {{ location_heatmap() }}
                 <!-- Fuel Type Comparison -->
-                <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
-                        <h2 class="text-xl font-bold mb-4">Average Price by Fuel Type</h2>
-                        <div class="w-full h-48 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">Bar Chart Here</div>
-                    </div>
-                    <div class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
-                        <h2 class="text-xl font-bold mb-4">Price Gap Over Time</h2>
-                        <div class="w-full h-48 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">
-                            Line Gap Chart Here
-                        </div>
-                    </div>
-                </section>
+                {{ fuel_comparison() }}
                 <!-- Predictive Analytics -->
-                <section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
-                    <h2 class="text-2xl font-bold mb-6">Forecast & Best Time to Fill</h2>
-                    <div class="w-full h-64 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">
-                        Forecast Chart Here
-                    </div>
-                </section>
+                {{ predictive_analytics() }}
                 <!-- Alerts & External Factors -->
-                <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
-                        <h2 class="text-xl font-bold mb-4">Custom Price Alerts</h2>
-                        <div class="w-full h-40 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">Alerts Setup Here</div>
-                    </div>
-                    <div class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
-                        <h2 class="text-xl font-bold mb-4">Crude Oil vs Fuel Price</h2>
-                        <div class="w-full h-40 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">
-                            Comparison Graph Here
-                        </div>
-                    </div>
-                </section>
+                {{ alerts_factors() }}
             </div>
             <!-- Dashboard Content End -->
         </div>
