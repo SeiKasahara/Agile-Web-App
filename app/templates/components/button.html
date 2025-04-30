@@ -18,7 +18,15 @@
     <a href="{{ href }}"
        class="{{ classes }} animated-button"
        {% if id %}id="{{ id }}"{% endif %}>
-      {% if icon %}<i class="{{ icon }} mr-2"></i>{% endif %}
+      {% if icon %}
+        <i class="{{ icon }} mr-2"></i>
+      {% elif svg_path %}
+        <img src="{{ url_for('static', filename=svg_path) }}"
+             height="1"
+             width="1"
+             class="w-5 h-5 mr-2"
+             alt="icon">
+      {% endif %}
       {{ text }}
     </a>
   {% else %}

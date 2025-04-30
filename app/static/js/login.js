@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const passwordInput = form.querySelector("input[name='password']");
   const loginButton = document.getElementById("login-btn");
   const signupButton = document.getElementById("signup-btn");
+  const googleButton = document.getElementById("google-btn");
   enableFormLeaveProtection("login-form");
 
   const showError = (input, message) => {
@@ -144,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     disableButton(loginButton);
     disableButton(signupButton);
+    disableButton(googleButton);
 
     const formData = new FormData(form);
 
@@ -168,12 +170,14 @@ document.addEventListener("DOMContentLoaded", () => {
           showErrorMessage(data.message);
           enableButton(loginButton);
           enableButton(signupButton);
+          enableButton(googleButton);
         }
       })
       .catch(() => {
         showErrorMessage("Network error. Please try again.");
         enableButton(loginButton);
         enableButton(signupButton);
+        enableButton(googleButton);
       });
   });
 });

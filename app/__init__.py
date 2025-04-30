@@ -4,11 +4,9 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from app.models import db, User
 from app.routes.main import main
-from app.routes.auth import auth_bp
+from app.routes.auth import auth_bp, oauth
 from app.utils.mail import mail
 from app.routes.dashboard import dashboard_bp
-
-
 
 migrate = Migrate()
 
@@ -20,11 +18,14 @@ def create_app():
     else:
         app.config.from_object('config.DevelopmentConfig')
         print("loading the development config")
+    # Initialize the oauth
+    oauth.init_app(app)
     # Initialize the mail sys
     mail.init_app(app)
     # Initialize Database
     db.init_app(app)
     migrate.init_app(app, db)
+    
 
 
     # Initialize Login Manager
