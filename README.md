@@ -4,8 +4,6 @@ The group project for unit CITS5505 agile web development
 
 ![logo](/app/static/assets/icon.png)
 
-To start the project, use `start.sh`, [dev] means development branch. [prod] means production branch
-
 ## Project Structure
 
 ### 📁 Project Directory Overview
@@ -107,20 +105,7 @@ Agile-Web-App/
 
 ### Running the Application
 
-You can run the application in two ways:
-
-1. Using Flask CLI:
-
-   ```bash
-   export FLASK_APP=app
-   export FLASK_ENV=development
-   flask run
-   ```
-
-2. Using Python directly:
-   ```bash
-   python run.py
-   ```
+To start the project, use `start.sh`, [dev] means development branch. [prod] means production branch
 
 The application will be available at `http://localhost:5000`
 
