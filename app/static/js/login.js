@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailInput = form.querySelector("input[name='email']");
   const passwordInput = form.querySelector("input[name='password']");
   const loginButton = document.getElementById("login-btn");
+  const signupButton = document.getElementById("signup-btn");
   enableFormLeaveProtection("login-form");
 
   const showError = (input, message) => {
@@ -142,6 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!valid) return;
 
     disableButton(loginButton);
+    disableButton(signupButton);
 
     const formData = new FormData(form);
 
@@ -160,16 +162,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.status === "success") {
           alert("Login Successful!", "Redirecting to dashboard...");
           setTimeout(() => {
-            window.location.href = "/";
+            window.location.href = "/dashboard";
           }, 1500);
         } else {
           showErrorMessage(data.message);
           enableButton(loginButton);
+          enableButton(signupButton);
         }
       })
       .catch(() => {
         showErrorMessage("Network error. Please try again.");
         enableButton(loginButton);
+        enableButton(signupButton);
       });
   });
 });

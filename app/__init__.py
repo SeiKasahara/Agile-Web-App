@@ -3,10 +3,12 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from app.models import db, User
-from app.routes import register_routes
 from app.routes.main import main
 from app.routes.auth import auth_bp
 from app.utils.mail import mail
+from app.routes.dashboard import dashboard_bp
+
+
 
 migrate = Migrate()
 
@@ -37,7 +39,8 @@ def create_app():
     # Register Routes
     app.register_blueprint(main)
     app.register_blueprint(auth_bp)
-
+    app.register_blueprint(dashboard_bp)
+    
     # Create the database if it doesn't exist
     with app.app_context():
         db.create_all()

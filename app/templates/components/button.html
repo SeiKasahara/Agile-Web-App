@@ -1,8 +1,12 @@
 {% macro button(text, icon=None, svg_path=None, href=None, submit=False, variant="default", disabled=False, id=None) %}
   {% set base = "inline-flex items-center justify-center px-4 py-2 text-l font-medium transition duration-200 ease-in-out rounded-xl" %}
   {% set layout = "w-full h-12" %}
-  {% if variant == "black" %}
+  {% if variant == "sidebar" %}
+    {% set color = "bg-gray-900 text-white hover:bg-gray-700" %}
+  {% elif variant == "black" %}
     {% set color = "bg-black text-white hover:bg-gray-800" %}
+  {% elif variant == "logout" %}
+    {% set color = "bg-red-400 text-white hover:bg-red-800" %}
   {% else %}
     {% set color = "bg-white text-black border border-std-btn-border hover:bg-gray-100 hover:shadow-md" %}
   {% endif %}
