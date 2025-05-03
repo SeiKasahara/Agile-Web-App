@@ -1,8 +1,6 @@
 import os
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
-
 class BaseConfig:
     SECRET_KEY = os.getenv('SECRET_KEY', 'default_secret')
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')

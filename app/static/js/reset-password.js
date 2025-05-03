@@ -190,7 +190,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.status === "success") {
           alert(data.message);
           setTimeout(() => {
-            window.location.href = "/login";
+            if (window.location.pathname.includes("/set-password")) {
+              window.location.href = "/dashboard";
+            } else {
+              window.location.href = "/login";
+            }
           }, 1500);
         } else {
           showErrorMessage(data.message);

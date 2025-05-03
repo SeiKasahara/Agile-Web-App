@@ -11,33 +11,36 @@ The group project for unit CITS5505 agile web development
 ```
 Agile-Web-App/
 ├── app/                    # Main Flask application
-│   ├── __init__.py        # Application factory
-│   ├── models.py          # Database models
-│   ├── routes/            # Route handlers
-│   │   ├── __init__.py    # Initializes the routes package
-│   │   ├── auth.py       # Authentication routes
-│   │   ├── dashboard.py  # Dashboard routes
-│   │   └── main.py       # Main application routes
-│   ├── templates/         # HTML templates
-│   │   ├── base.html     # Base template
-│   │   └── main/         # Main application templates
+│   ├── __init__.py
+│   ├── models.py
+│   ├── routes/
+│   │   ├── auth.py
+│   │   ├── dashboard.py
+│   │   └── main.py
+│   ├── templates/
+│   │   ├── base.html
+│   │   └── main/
+|   |       ├── dashboard.html
+|   |       ├── profile.html
 │   │       ├── index.html
 │   │       ├── login.html
 │   │       ├── signup.html
 │   │       └── reset_password.html
-│   └── static/           # Static files
-│       └── css/
-│           └── style.css
-├── tests/                 # Test suite
-│   ├── __init__.py
-│   └── test_main.py      # Tests for main routes
-├── .github/              # GitHub configuration
-├── .vscode/             # VS Code settings
-├── .venv/               # Python virtual environment
-├── config.py            # Application configuration
-├── run.py               # Application entry point
-├── requirements.txt     # Python dependencies
-└── README.md           # Project documentation
+│   └── static/
+│       ├── css/
+│       │   └── style.css
+│       ├── js/
+│       └── assets/
+├── migrations/             # Database migration files
+├── tests/                  # Test suite
+├── .github/                # GitHub Actions & issue templates
+├── .vscode/                # Editor configuration
+├── run.py                  # App entry point
+├── config.py               # App configuration
+├── requirements.txt        # Dependencies
+├── .env.development        # Local environment variables
+├── .env.production         # Local environment variables
+└── README.md               # Project documentation
 ```
 
 ### Key Directories and Files
@@ -119,10 +122,9 @@ pytest
 
 ## Members
 
-| UWA ID   |      Name       |                                                      Github user name |
-|:---------|:---------------:|----------------------------------------------------------------------:|
-| 24386873 |   Edward Yuan   |                        [@Seikasahara](https://github.com/Seikasahara) |
-| 24638832 |   Parna Basak   |                          [@parnabasak](https://github.com/parnabasak) |
-| 24146595 |   Yechang Wu    |                                  [@Wycers](https://github.com/wycers) |
-| 24349497 | Zhengdong Jiang |                                    [@dgyz8](https://github.com/dgyz8) |
-
+| UWA ID   |      Name       |                               Github user name |
+| :------- | :-------------: | ---------------------------------------------: |
+| 24386873 |   Edward Yuan   | [@Seikasahara](https://github.com/Seikasahara) |
+| 24638832 |   Parna Basak   |   [@parnabasak](https://github.com/parnabasak) |
+| 24146595 |   Yechang Wu    |           [@Wycers](https://github.com/wycers) |
+| 24349497 | Zhengdong Jiang |             [@dgyz8](https://github.com/dgyz8) |
