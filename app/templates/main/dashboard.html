@@ -21,12 +21,14 @@
             <div class="mt-6 pt-6 border-t border-gray-700">
                 <a href="/profile"
                    class="flex items-center space-x-3 hover:bg-gray-700 px-3 py-2 rounded-md transition duration-200">
-                    <div class="w-10 h-10 bg-gray-600 rounded-full overflow-hidden">
-                        {# If using uploaded avatar: #}
-                        {# <img src="{{ url_for('static', filename='avatars/' + current_user.avatar) }}"
-      alt="avatar"> #}
-                        {# Else fallback initials: #}
-                        <span class="flex items-center justify-center h-full w-full text-white font-bold text-sm uppercase">
+                    <div class="w-10 h-10 rounded-full overflow-hidden">
+                        <img id="avatar"
+                             src="{% if user.avatar %}{{ url_for('static', filename='avatars/'~user.avatar) }}{% endif %}"
+                             alt="Avatar"
+                             height="1"
+                             width="1"
+                             class="flex w-full rounded-full overflow-hidden h-full {% if not user.avatar %}hidden{% endif %}">
+                        <span class="flex  bg-gray-600 items-center justify-center h-full w-full text-white font-bold text-sm uppercase">
                             {{ current_user.first_name[0] ~ current_user.last_name[0] }}
                         </span>
                     </div>

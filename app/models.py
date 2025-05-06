@@ -13,6 +13,15 @@ class User(db.Model, UserMixin):
     verified = db.Column(db.Boolean, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     is_social_login = db.Column(db.Boolean, default=False)
+    avatar = db.Column(db.String(256))
+    email_verify_code = db.Column(db.String(6), nullable=True)
+    email_verify_expiration = db.Column(db.DateTime, nullable=True)
+    default_fuel_type = db.Column(db.String(32), default='Unleaded')
+    default_date_range = db.Column(db.String(16), default='7d')    # e.g. '7d','30d'
+    default_location = db.Column(db.String(64), nullable=True)
+    alert_threshold = db.Column(db.Float, nullable=True)
+    alert_frequency = db.Column(db.String(16), default='daily') # e.g. 'realtime','daily','weekly'
+    public_dashboard = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
         if hasattr(hashlib, "scrypt"):

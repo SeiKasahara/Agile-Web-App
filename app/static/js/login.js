@@ -35,7 +35,16 @@ function disableButton(btn) {
     "bg-gray-300",
     "text-gray-500"
   );
-  btn.classList.remove("bg-black", "text-white", "hover:bg-gray-800");
+  if (btn.id === "login-btn" || btn.id === "signup-btn") {
+    btn.classList.remove("bg-black", "text-white", "hover:bg-gray-800");
+  } else {
+    btn.classList.remove(
+      "bg-white",
+      "text-black",
+      "hover:bg-gray-100",
+      "hover:shadow-md"
+    );
+  }
 }
 
 function enableButton(btn) {
@@ -47,7 +56,16 @@ function enableButton(btn) {
     "bg-gray-300",
     "text-gray-500"
   );
-  btn.classList.add("bg-black", "text-white", "hover:bg-gray-800");
+  if (btn.id === "login-btn" || btn.id === "signup-btn") {
+    btn.classList.add("bg-black", "text-white", "hover:bg-gray-800");
+  } else {
+    btn.classList.add(
+      "bg-white",
+      "text-black",
+      "hover:bg-gray-100",
+      "hover:shadow-md"
+    );
+  }
 }
 
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
