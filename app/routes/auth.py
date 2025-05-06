@@ -155,9 +155,6 @@ def set_password():
 
 @auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
 def reset_password(token):
-    if current_user.is_authenticated:
-        return redirect(url_for("main.index"))
-
     user = verify_reset_token(token)
     if not user:
         flash("Invalid or expired token.", "error")
