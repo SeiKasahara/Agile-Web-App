@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% from "components/button.html" import button %}
+{% block title %}Fuel Dashboard{% endblock %}
+{% block content %}
+    <div id="dashboard-layout" class="min-h-screen  text-white flex relative">
+        <!-- Sidebar -->
+        <aside id="sidebar"
+               class="fixed inset-y-0 left-0 z-40 w-64 bg-black transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between p-6">
+            <div class="space-y-6">
+                <a href="/">
+                    <div class="text-2xl font-bold">FuelPrice Analysis WebApp</div>
+                </a>
+                <div id="fuel-icon-container" class="w-48 h-48 flex items-center"></div>
+                <nav class="flex flex-col gap-6 mt-10">
+                    {{ button("Dashboard", href=url_for('dashboard.dashboard_home') , variant="sidebar") }}
+                    {{ button("Analytics", href="#", variant="sidebar") }}
+                    {{ button("Settings", href="#", variant="sidebar") }}
+                </nav>
+            </div>
+            <!-- User profile shortcut -->
+            <div class="mt-6 pt-6 border-t border-gray-700">
+                <a href="/profile"
+                   class="flex items-center space-x-3 hover:bg-gray-700 px-3 py-2 rounded-md transition duration-200">
+                    <div class="w-10 h-10 rounded-full overflow-hidden">
+                        <img id="avatar"
+                             src="{% if user.avatar %}{{ url_for('static', filename='avatars/'~user.avatar) }}{% endif %}"
+                             alt="Avatar"
+                             height="1"
+                             width="1"
+                             class="flex w-full rounded-full overflow-hidden h-full {% if not user.avatar %}hidden{% endif %}">
+                        <span class="flex  bg-gray-600 items-center justify-center h-full w-full text-white font-bold text-sm uppercase">
+                            {{ current_user.first_name[0] ~ current_user.last_name[0] }}
+                        </span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold">{{ current_user.first_name }} {{ current_user.last_name }}</p>
+                        <p class="text-xs text-gray-400">View Profile</p>
+                    </div>
+                </a>
+            </div>
+            <div>{{ button("Logout", href=url_for('auth.logout') , variant="logout") }}</div>
+        </aside>
+        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-30"></div>
+        <!-- Main Panel -->
+        <div class="flex-1 flex flex-col relative">
+            <!-- Topbar -->
+            <div class="flex items-center justify-between p-6 bg-black shadow-md">
+                <!-- Hamburger button -->
+                <button id="menu-toggle" class="text-white focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <h1 class="text-2xl font-bold">Fuel Price Dashboard</h1>
+                <!-- Right Controls -->
+                <div class="hidden md:flex flex-wrap gap-4 w-xs">
+                    <input type="date"
+                           class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none" />
+                    <select class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
+                        <option>All Fuel Types</option>
+                        <option>Unleaded</option>
+                        <option>Premium</option>
+                        <option>Diesel</option>
+                    </select>
+                    <select class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
+                        <option>All Locations</option>
+                        <option>Perth</option>
+                        <option>Sydney</option>
+                        <option>Melbourne</option>
+                    </select>
+                    <div>{{ button("Refresh Data", href="#", variant="default") }}</div>
+                </div>
+            </div>
+            <!-- Dashboard Content -->
+            <div class="p-6 flex flex-col gap-12 overflow-y-auto">
+                <!-- Key Metrics Summary Cards -->
+                <section class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="bg-gray-800 rounded-lg p-6 text-center shadow hover:shadow-lg transition">
+                        <h2 class="text-lg font-semibold mb-2">Avg Price</h2>
+                        <p class="text-3xl font-bold text-blue-400">$1.43</p>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-6 text-center shadow hover:shadow-lg transition">
+                        <h2 class="text-lg font-semibold mb-2">Volatility</h2>
+                        <p class="text-3xl font-bold text-yellow-400">8%</p>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-6 text-center shadow hover:shadow-lg transition">
+                        <h2 class="text-lg font-semibold mb-2">Cheapest</h2>
+                        <p class="text-3xl font-bold text-green-400">$1.22</p>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-6 text-center shadow hover:shadow-lg transition">
+                        <h2 class="text-lg font-semibold mb-2">Expensive</h2>
+                        <p class="text-3xl font-bold text-red-400">$1.79</p>
+                    </div>
+                </section>
+                <!-- Time-Based Trends -->
+                <section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+                    <h2 class="text-2xl font-bold mb-6">Price Trends Over Time</h2>
+                    <div class="flex gap-6 mb-4">
+                        <button class="text-blue-400 font-semibold">Daily</button>
+                        <button class="hover:text-blue-400">Weekly</button>
+                        <button class="hover:text-blue-400">Monthly</button>
+                    </div>
+                    <div class="w-full h-64 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">Line Chart Here</div>
+                </section>
+                <!-- Location Heatmap -->
+                <section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+                    <h2 class="text-2xl font-bold mb-6">Regional Price Heatmap</h2>
+                    <div class="w-full h-64 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">Heatmap Here</div>
+                </section>
+                <!-- Fuel Type Comparison -->
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+                        <h2 class="text-xl font-bold mb-4">Average Price by Fuel Type</h2>
+                        <div class="w-full h-48 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">Bar Chart Here</div>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+                        <h2 class="text-xl font-bold mb-4">Price Gap Over Time</h2>
+                        <div class="w-full h-48 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">
+                            Line Gap Chart Here
+                        </div>
+                    </div>
+                </section>
+                <!-- Predictive Analytics -->
+                <section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+                    <h2 class="text-2xl font-bold mb-6">Forecast & Best Time to Fill</h2>
+                    <div class="w-full h-64 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">
+                        Forecast Chart Here
+                    </div>
+                </section>
+                <!-- Alerts & External Factors -->
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+                        <h2 class="text-xl font-bold mb-4">Custom Price Alerts</h2>
+                        <div class="w-full h-40 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">Alerts Setup Here</div>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+                        <h2 class="text-xl font-bold mb-4">Crude Oil vs Fuel Price</h2>
+                        <div class="w-full h-40 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">
+                            Comparison Graph Here
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- Dashboard Content End -->
+        </div>
+        <!-- Main Panel End -->
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard-sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
+{% endblock %}

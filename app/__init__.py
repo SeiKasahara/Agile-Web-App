@@ -3,11 +3,13 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from app.models import db, User
-from app.routes import register_routes
 from app.routes.main import main
+
 from app.routes.auth import auth_bp
-from app.fuel_upload import fuel_upload_bp  # ✅ NEW IMPORT
+from app.fuel_upload import fuel_upload_bp
+
 from app.utils.mail import mail
+from app.routes.dashboard import dashboard_bp
 
 migrate = Migrate()
 
@@ -19,13 +21,16 @@ def create_app():
     else:
         app.config.from_object('config.DevelopmentConfig')
         print("loading the development config")
-    
-    # Initialize the mail system
+
+    # Initialize the oauth
+    oauth.init_app(app)
+    # Initialize the mail sys
     mail.init_app(app)
     
     # Initialize Database
     db.init_app(app)
     migrate.init_app(app, db)
+    
 
     # Initialize Login Manager
     login_manager = LoginManager()
@@ -39,8 +44,11 @@ def create_app():
     # Register Blueprints
     app.register_blueprint(main)
     app.register_blueprint(auth_bp)
-    app.register_blueprint(fuel_upload_bp)  # ✅ REGISTER NEW UPLOAD ROUTE
 
+    app.register_blueprint(fuel_upload_bp)
+
+    app.register_blueprint(dashboard_bp)
+    
     # Create the database if it doesn't exist
     with app.app_context():
         db.create_all()

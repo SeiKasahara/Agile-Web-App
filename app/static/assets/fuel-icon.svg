@@ -1,0 +1,9 @@
+        <svg id="fuel-icon"
+             class="w-48 h-48 text-white"
+             viewBox="0 0 512 512"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="8"
+             xmlns="http://www.w3.org/2000/svg">
+            <path d="M160 96v320M160 96h128M288 96v320M160 416h128M320 160l80-80M400 80v120M400 200l-40 40M360 240l-40-40M320 200v-40M320 240v80M160 240h64M160 320h64" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>

@@ -11,6 +11,9 @@ fi
 source $VENV_DIR/Scripts/activate
 echo "Activated virtual environment."
 
+echo "install the requirements library"
+pip install -r requirements.txt
+
 if [[ $# -ne 1 ]]; then
     echo "Usage: start [dev] dev-development or [prod] production-environment"
     exit 1
@@ -38,4 +41,16 @@ fi
 
 export FLASK_APP=run.py
 
+if [ ! -d "migrations" ] || [ -z "$(ls -A migrations)" ]; then
+  echo "'migrations/' is missing or empty. Running 'flask db init'..."
+  flask db init
+fi
+
+echo "Generating migration..."
+flask db migrate -m "Auto migration"
+
+echo "Applying migration..."
+flask db upgrade
+
 flask run
+

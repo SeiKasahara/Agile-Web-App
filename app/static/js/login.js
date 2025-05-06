@@ -35,7 +35,16 @@ function disableButton(btn) {
     "bg-gray-300",
     "text-gray-500"
   );
-  btn.classList.remove("bg-black", "text-white", "hover:bg-gray-800");
+  if (btn.id === "login-btn" || btn.id === "signup-btn") {
+    btn.classList.remove("bg-black", "text-white", "hover:bg-gray-800");
+  } else {
+    btn.classList.remove(
+      "bg-white",
+      "text-black",
+      "hover:bg-gray-100",
+      "hover:shadow-md"
+    );
+  }
 }
 
 function enableButton(btn) {
@@ -47,7 +56,16 @@ function enableButton(btn) {
     "bg-gray-300",
     "text-gray-500"
   );
-  btn.classList.add("bg-black", "text-white", "hover:bg-gray-800");
+  if (btn.id === "login-btn" || btn.id === "signup-btn") {
+    btn.classList.add("bg-black", "text-white", "hover:bg-gray-800");
+  } else {
+    btn.classList.add(
+      "bg-white",
+      "text-black",
+      "hover:bg-gray-100",
+      "hover:shadow-md"
+    );
+  }
 }
 
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -57,6 +75,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailInput = form.querySelector("input[name='email']");
   const passwordInput = form.querySelector("input[name='password']");
   const loginButton = document.getElementById("login-btn");
+  const signupButton = document.getElementById("signup-btn");
+  const googleButton = document.getElementById("google-btn");
   enableFormLeaveProtection("login-form");
 
   const showError = (input, message) => {
@@ -142,6 +162,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!valid) return;
 
     disableButton(loginButton);
+    disableButton(signupButton);
+    disableButton(googleButton);
 
     const formData = new FormData(form);
 
@@ -160,16 +182,20 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.status === "success") {
           alert("Login Successful!", "Redirecting to dashboard...");
           setTimeout(() => {
-            window.location.href = "/";
+            window.location.href = "/dashboard";
           }, 1500);
         } else {
           showErrorMessage(data.message);
           enableButton(loginButton);
+          enableButton(signupButton);
+          enableButton(googleButton);
         }
       })
       .catch(() => {
         showErrorMessage("Network error. Please try again.");
         enableButton(loginButton);
+        enableButton(signupButton);
+        enableButton(googleButton);
       });
   });
 });
