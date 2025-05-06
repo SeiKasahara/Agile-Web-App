@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
 import os
 
+from app.models import FuelPrice
+
 # Blueprint for modular route handling
 fuel_upload_bp = Blueprint('fuel_upload', __name__)
 
@@ -13,15 +15,6 @@ from app import db
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, '..', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-# Define the FuelPrice model
-class FuelPrice(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    city = db.Column(db.String(50))
-    region = db.Column(db.String(50))
-    fuel_type = db.Column(db.String(50))
-    price_per_litre = db.Column(db.Float)
-    price_date = db.Column(db.String(20))
 
 # Route to handle CSV upload
 @fuel_upload_bp.route('/upload', methods=['POST'])
