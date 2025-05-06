@@ -24,7 +24,7 @@ class User(db.Model, UserMixin):
     alert_threshold = db.Column(db.Float, nullable=True)
     alert_frequency = db.Column(db.String(16), default='daily') # e.g. 'realtime','daily','weekly'
     public_dashboard = db.Column(db.Boolean, default=False)
-    uploads   = db.relationship("UploadBatch", back_populates="user", cascade="all, delete-orphan")
+    uploads = db.relationship("UploadBatch", back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password):
         if hasattr(hashlib, "scrypt"):

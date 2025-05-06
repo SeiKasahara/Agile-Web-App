@@ -22,7 +22,7 @@ def upgrade():
     with op.batch_alter_table('fuel_prices', schema=None) as batch_op:
         batch_op.add_column(sa.Column('batch_id', sa.Integer(), nullable=False))
         batch_op.create_index(batch_op.f('ix_fuel_prices_batch_id'), ['batch_id'], unique=False)
-        batch_op.create_foreign_key(None, 'upload_batches', ['batch_id'], ['id'])
+        batch_op.create_foreign_key('fk_fuelprices_batch_id', 'upload_batches', ['batch_id'], ['id'])
         batch_op.drop_column('updated_at')
 
     # ### end Alembic commands ###
