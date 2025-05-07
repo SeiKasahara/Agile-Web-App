@@ -20,9 +20,33 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+function disableButton(btn) {
+  btn.classList.add(
+    "cursor-not-allowed",
+    "opacity-60",
+    "pointer-events-none",
+    "bg-gray-300",
+    "text-gray-500"
+  );
+  btn.classList.remove("bg-black", "text-white", "hover:bg-gray-800");
+}
+
+function enableButton(btn) {
+  btn.classList.remove(
+    "cursor-not-allowed",
+    "opacity-60",
+    "pointer-events-none",
+    "bg-gray-300",
+    "text-gray-500"
+  );
+  btn.classList.add("bg-black", "text-white", "hover:bg-gray-800");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const uploadForm = document.getElementById("upload-form");
   const previewSlot = document.createElement("div");
+  const uploadBtn = document.getElementById("upload-btn");
+  const uploading = document.getElementById("uploading");
   previewSlot.id = "upload-preview";
   previewSlot.className = "pt-4 space-y-4";
 
@@ -31,6 +55,10 @@ document.addEventListener("DOMContentLoaded", () => {
   uploadForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     previewSlot.innerHTML = "";
+    disableButton(uploadBtn);
+    uploading.classList.remove("hidden");
+    uploading.classList.add("flex");
+
     const formData = new FormData(uploadForm);
 
     try {
@@ -44,6 +72,9 @@ document.addEventListener("DOMContentLoaded", () => {
         previewSlot.innerHTML = `<p class="text-red-500">${
           data.error || data.message
         }</p>`;
+        enableButton(uploadBtn);
+        uploading.classList.add("hidden");
+        uploading.classList.remove("flex");
         return;
       }
 
@@ -65,9 +96,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const msg = document.createElement("p");
       msg.className = "text-green-600";
       msg.textContent = data.message;
+      enableButton(uploadBtn);
+      uploading.classList.add("hidden");
+      uploading.classList.remove("flex");
       previewSlot.insertBefore(msg, previewSlot.firstChild);
     } catch (err) {
-      previewSlot.innerHTML = `<p class="text-red-500">Network error: ${err.message}</p>`;
+      previewSlot.innerHTML = `<p class="text-red-500">Internal Server Error: ${err.message}</p>`;
+      enableButton(uploadBtn);
+      uploading.classList.add("hidden");
+      uploading.classList.remove("flex");
     }
   });
 
