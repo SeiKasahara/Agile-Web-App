@@ -27,7 +27,7 @@
           <hr class="flex-grow border-gray-300">
         </div>
         <div class="flex flex-col md:flex-row gap-4">
-          {{ button("Google", svg_path="assets/google.svg", variant="default") }}
+          {{ button("Google", id="google-btn", svg_path="/assets/google.svg", href="/login/google", variant="default") }}
           <p id="login-msg" class="text-sm mt-2 text-center"></p>
         </div>
       </div>
@@ -43,7 +43,8 @@
         </div>
         <div id="bottom-brand"
              class="flex justify-end items-center gap-x-2 mt-1 pr-2">
-          <span class="text-white font-medium text-2xl md:text-4xl whitespace-nowrap">FuelPrice Analysis WebApp</span>
+          <a href="/">
+            <span class="text-white font-medium text-2xl md:text-4xl whitespace-nowrap">FuelPrice Analysis WebApp</span></a>
           <div id="fuel-icon-container" class="w-20 h-20 flex items-center"></div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VENV_DIR="venv"
+VENV_DIR=".venv"
 
 if [ ! -d "$VENV_DIR" ]; then
     echo "Virtual environment ($VENV_DIR) not found!"
@@ -41,4 +41,16 @@ fi
 
 export FLASK_APP=run.py
 
+if [ ! -d "migrations" ] || [ -z "$(ls -A migrations)" ]; then
+  echo "'migrations/' is missing or empty. Running 'flask db init'..."
+  flask db init
+fi
+
+echo "Generating migration..."
+flask db migrate -m "Auto migration"
+
+echo "Applying migration..."
+flask db upgrade
+
 flask run
+
