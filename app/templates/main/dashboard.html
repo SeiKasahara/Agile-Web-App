@@ -6,6 +6,7 @@
 {% from "components/dashboard/fuel_comparison.html" import fuel_comparison %}
 {% from "components/dashboard/predictive_analytics.html" import predictive_analytics %}
 {% from "components/dashboard/alerts_factors.html" import alerts_factors %}
+{% from "components/loading.html" import loading %}
 
 {% block title %}Fuel Dashboard{% endblock %}
 {% block content %}
@@ -30,7 +31,9 @@
                    class="flex items-center space-x-3 hover:bg-gray-700 px-3 py-2 rounded-md transition duration-200">
                     <div class="w-10 h-10 rounded-full overflow-hidden">
                         <img id="avatar"
-                             src="{% if user.avatar %}{{ url_for('static', filename='avatars/'~user.avatar) }}{% endif %}"
+                             src="
+
+                                     {% if user.avatar %}{{ url_for('static', filename='avatars/'~user.avatar) }}{% endif %}"
                              alt="Avatar"
                              height="1"
                              width="1"
@@ -55,14 +58,14 @@
                 <!-- Hamburger button -->
                 <button id="menu-toggle" class="text-white focus:outline-none">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
                 <h1 class="text-2xl font-bold">Fuel Price Dashboard</h1>
                 <!-- Right Controls -->
                 <div class="hidden md:flex flex-wrap gap-4 w-xs">
                     <input type="date"
-                           class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none" />
+                           class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none"/>
                     <select class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
                         <option>All Fuel Types</option>
                         <option>Unleaded</option>
@@ -75,7 +78,7 @@
                         <option>Sydney</option>
                         <option>Melbourne</option>
                     </select>
-                    <div>{{ button("Upload Data", href="#", variant="default", id="open-upload-modal") }}</div>
+                    <div>{{ button("Upload Data", href="javascript:void(0);", variant="default", id="open-upload-modal") }}</div>
                 </div>
             </div>
             <!-- Dashboard Content -->
@@ -98,11 +101,62 @@
                 <!-- Alerts & External Factors -->
                 {{ alerts_factors(chart_data) }}
             </div>
-            <!-- Dashboard Content End -->
+            <!-- Data uploading -->>
+            <div id="upload-modal"
+                 class="hidden fixed inset-0 z-20 w-full items-center justify-center bg-black bg-opacity-50">
+                <div class="bg-white text-black w-full max-w-4xl rounded-md p-6 space-y-6 shadow-lg relative">
+                    <button id="close-upload-modal"
+                            class="absolute top-3 right-3 text-gray-600 hover:text-gray-800">✕
+                    </button>
+                    <h2 class="text-2xl font-bold text-center">Upload Your CSV</h2>
+                    <form id="upload-form"
+                          action="{{ url_for("fuel_upload.upload_file") }}"
+                          method="post"
+                          enctype="multipart/form-data"
+                          class="space-y-4">
+                        <label class="block text-sm font-medium">Select CSV File</label>
+                        <input name="file"
+                               id="upload-csv"
+                               type="file"
+                               accept=".csv"
+                               required
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                        {{ button("Upload & Preview", id="upload-btn", variant="black", submit=True) }}
+                    </form>
+                    {% if table %}
+                        <div class="pt-4">
+                            <h3 class="text-xl font-semibold mb-2">Data Preview</h3>
+                            <div class="relative w-full border rounded">
+                                <div class="overflow-x-auto w-full block max-h-64">
+                                    <table class="min-w-full table-auto text-xs">
+                                        {{ table_header|safe }}
+                                        <tbody>
+                                        {% for row in sample %}
+                                            <tr>
+                                                {% for val in row.values() %}
+                                                    <td class="border px-2 py-1 whitespace-nowrap truncate">{{ val }}</td>{% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if stats %}
+                        <div class="pt-4">
+                            <h3 class="text-xl font-semibold mb-2">Basic Statistics</h3>
+                            <div class="overflow-x-auto max-h-64">{{ stats|safe }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {{ loading(id="uploading", variant="white") }}
         </div>
         <!-- Main Panel End -->
     </div>
     <script src="{{ url_for('static', filename='js/dashboard-sidebar.js') }}"></script>
     <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
     <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
