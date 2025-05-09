@@ -139,3 +139,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return table;
   }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('filter-form');
+    if (!form) return;
+    form.querySelectorAll('input[name="date"], select[name="fuel_type"], select[name="location"]')
+        .forEach(function(el) {
+            el.addEventListener('change', function() {
+                form.submit();
+            });
+        });
+});

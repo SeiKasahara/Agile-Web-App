@@ -13,14 +13,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Convert server-side chart_data into JavaScript object
     const chartData = {{ chart_data|tojson }};
     let chart = null;
     let currentRange = 'daily';
 
-    // Function to update button states
+    // Update button highlight state based on active range
     function updateButtonStates(activeRange) {
-        const buttons = document.querySelectorAll('.time-range-btn');
-        for (const btn of buttons) {
+        document.querySelectorAll('.time-range-btn').forEach(btn => {
             if (btn.dataset.range === activeRange) {
                 btn.classList.add('text-blue-400', 'bg-blue-400/10');
                 btn.classList.remove('hover:text-blue-400', 'hover:bg-blue-400/10');
@@ -28,70 +28,74 @@
                 btn.classList.remove('text-blue-400', 'bg-blue-400/10');
                 btn.classList.add('hover:text-blue-400', 'hover:bg-blue-400/10');
             }
-        }
+        });
     }
 
-    // Function to update the chart
+    // Initialize or update the Chart.js instance
     function updateChart(range) {
         if (range === currentRange) return;
-        
         currentRange = range;
         updateButtonStates(range);
-        
-        // Show loading state
-        if (chart) {
-            for (const dataset of chart.data.datasets) {
-                dataset.data = [];
-            }
-            chart.update();
-        }
 
-        const data = chartData[range];
-        
+        const newData = chartData[range];
+
         if (!chart) {
-            // Initialize chart if it doesn't exist
-            const config = {
-                type: 'line',
-                data: data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: {
-                        duration: 500
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            title: {
-                                display: true,
-                                text: 'Price (cents)'
-                            }
+            // Create chart on first load
+            chart = new Chart(
+                document.getElementById('fuelPriceChart'),
+                {
+                    type: 'line',
+                    data: newData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 500
                         },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Time'
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                },
+                                ticks: {
+                                    autoSkip: true,
+                                    maxTicksLimit: 10  // Limit number of x-axis ticks
+                                }
+                            },
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Price (cents)'
+                                }
                             }
                         }
                     }
                 }
-            };
-            chart = new Chart(document.getElementById('fuelPriceChart'), config);
+            );
         } else {
-            // Update existing chart
-            chart.data = data;
+            // Update labels and datasets in place
+            chart.data.labels = newData.labels;
+            chart.data.datasets = newData.datasets.map(ds => ({
+                label: ds.label,
+                data: ds.data,
+                tension: ds.tension,
+                borderColor: ds.borderColor,
+                backgroundColor: ds.backgroundColor || undefined
+            }));
             chart.update();
         }
     }
 
-    // Add click event listeners to buttons
-    for (const btn of document.querySelectorAll('.time-range-btn')) {
+    // Attach click events to time range buttons
+    document.querySelectorAll('.time-range-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             updateChart(btn.dataset.range);
         });
-    }
+    });
 
-    // Initialize with daily data
+    // Load initial chart with daily data
     updateChart('daily');
 </script>
-{% endmacro %} 
+{% endmacro %}
