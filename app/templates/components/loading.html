@@ -1,0 +1,15 @@
+{% macro loading(id="loading", variant="white") %}
+    {% if variant == "white" %}
+        {% set invert = "invert" %}
+    {% elif variant == "black" %}
+        {% set invert = "" %}
+    {% endif %}
+    <div id="{{ id }}"
+         class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50">
+        <img src="{{ url_for('static', filename='assets/spinner.svg') }}"
+             alt="Loading spinner"
+             height="1"
+             width="1"
+             class="w-12 h-12 animate-spin opacity-80 {{ invert }}">
+    </div>
+{% endmacro %}

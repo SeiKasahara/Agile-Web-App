@@ -6,7 +6,11 @@ from flask_migrate import Migrate
 from app.models import db, User
 from app.routes.auth import auth_bp, oauth
 from app.routes.main import main
+
+from app.routes.auth import auth_bp
 from app.fuel_upload import fuel_upload_bp
+
+from app.utils.mail import mail
 from app.routes.dashboard import dashboard_bp
 
 db = SQLAlchemy()
