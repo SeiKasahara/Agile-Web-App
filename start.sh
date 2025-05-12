@@ -1,8 +1,11 @@
 #!/bin/bash
 
-VENV_DIR=".venv"
 
-if [ ! -d "$VENV_DIR" ]; then
+if [ -d ".venv" ]; then
+  VENV_DIR=".venv"
+elif [ -d "venv" ]; then
+  VENV_DIR="venv"
+else
     echo "Virtual environment ($VENV_DIR) not found!"
     echo "Please create one using: python -m venv venv"
     exit 1
