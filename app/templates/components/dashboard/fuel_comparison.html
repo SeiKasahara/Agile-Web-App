@@ -7,16 +7,15 @@
             </div>
         </div>
         <div class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
-            <h2 class="text-xl font-bold mb-4">Price Gap Over Time</h2>
+            <h2 class="text-xl font-bold mb-4">Price Gap between Types Over Time</h2>
             <div class="w-full h-48 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">
                 <canvas id="priceGapChart" class="w-full h-48"></canvas>
             </div>
         </div>
     </section>
     <script>
-        (function () {
-            const labels = {{ chart_data.monthly.labels | tojson }};
-            const datasets = {{ chart_data.monthly.datasets | tojson }};
+            const labels = {{ chart_data.weekly.labels | tojson }};
+            const datasets = {{ chart_data.weekly.datasets | tojson }};
 
             // Compute average prices
             const avgLabels = datasets.map(ds => ds.label);
@@ -38,15 +37,55 @@
                 const values = datasets.map(ds => ds.data[idx]);
                 return Math.max(...values) - Math.min(...values);
             });
-
             // Line chart for price gap
             const ctxLine = document.getElementById('priceGapChart').getContext('2d');
             new Chart(ctxLine, {
                 type: 'line',
-                data: {labels: labels, datasets: [{label: 'Price Gap', data: gapData, tension: 0.3}]},
-                options: {scales: {x: {display: true}, y: {display: true}}, plugins: {legend: {position: 'top'}}}
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Price Gap (Max - Min)',
+                        data: gapData,
+                        borderColor: '#f87171',
+                        backgroundColor: 'rgba(248,113,113,0.2)',
+                        fill: true,
+                        pointRadius: 3,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Week',
+                                color: '#ccc'
+                            },
+                            ticks: { color: '#ccc' }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Price Gap ($/L)',
+                                color: '#ccc'
+                            },
+                            ticks: { color: '#ccc' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: '#ccc' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Gap: $${context.parsed.y.toFixed(2)}`
+                            }
+                        }
+                    }
+                }
             });
-        })();
     </script>
-
-{% endmacro %} 
+{% endmacro %}

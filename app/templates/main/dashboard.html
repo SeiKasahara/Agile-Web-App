@@ -5,9 +5,7 @@
 {% from "components/dashboard/location_heatmap.html" import location_heatmap %}
 {% from "components/dashboard/fuel_comparison.html" import fuel_comparison %}
 {% from "components/dashboard/predictive_analytics.html" import predictive_analytics %}
-{% from "components/dashboard/alerts_factors.html" import alerts_factors %}
 {% from "components/loading.html" import loading %}
-
 {% block title %}Fuel Dashboard{% endblock %}
 {% block content %}
     <div id="dashboard-layout" class="min-h-screen text-white flex relative">
@@ -55,7 +53,7 @@
             <div class="flex items-center justify-between p-6 bg-black shadow-md">
                 <button id="menu-toggle" class="text-white focus:outline-none">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
                 <h1 class="text-2xl font-bold">Fuel Price Dashboard</h1>
@@ -63,103 +61,114 @@
                 <form id="filter-form"
                       class="hidden md:flex flex-wrap gap-4 items-center"
                       method="get"
-                      action="{{ url_for('dashboard.dashboard_home') }}">
-                    <!-- 日期选择 -->
-                    <input type="date" name="date" value="{{ request.args.get('date','') }}" class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none"
-                    />
-
-                    <!-- 燃料类型下拉 -->
-                    <select name="fuel_type" class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
-                        {% for ft in ['All Fuel Types','ULP','ULP98','DIESEL'] %}
-                            <option value="{{ ft }}" {% if request.args.get('fuel_type','All Fuel Types') == ft %}selected{% endif %}>{{ ft }}</option>
+                      action="{{ url_for("dashboard.dashboard_home") }}">
+                    <!-- Date Choice -->
+                    <input id="date_select"
+                           type="date"
+                           name="date"
+                           value="{{ request.args.get('date', '') }}"
+                           class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none" />
+                    <!-- FuelType -->
+                    <select id="fuel_type_select"
+                            name="fuel_type"
+                            class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
+                        <option value="All Fuel Types"
+                                {% if request.args.get('fuel_type','All Fuel Types') == 'All Fuel Types' %}selected{% endif %}>
+                            All Fuel Types
+                        </option>
+                        {% for ft in fuel_types %}
+                            <option value="{{ ft.name }}"
+                                    {% if request.args.get('fuel_type') == ft.name %}selected{% endif %}>
+                                {{ ft.name }}
+                            </option>
                         {% endfor %}
                     </select>
-
-                    <!-- 地点下拉（如需） -->
-                    <select name="location" class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
-                        {% for loc in ['All Locations','Perth','Sydney','Melbourne'] %}
-                            <option value="{{ loc }}" {% if request.args.get('location','All Locations') == loc %}selected{% endif %}>
-                                {{ loc }}
-                            </option>
+                    <!-- Location -->
+                    <select id="location_select"
+                            name="location"
+                            class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
+                        <option value="All Locations"
+                                {% if request.args.get('location','All Locations') == 'All Locations' %}selected{% endif %}>
+                            All Locations
+                        </option>
+                        {% for loc in locations if loc != 'All Locations' %}
+                            <option value="{{ loc }}"
+                                    {% if request.args.get('location') == loc %}selected{% endif %}>{{ loc }}</option>
                         {% endfor %}
                     </select>
                     <div>{{ button("Upload Data", href="javascript:void(0);", variant="default", id="open-upload-modal") }}</div>
                 </form>
             </div>
-
-        <!-- Dashboard Content -->
-        <div class="p-6 flex flex-col gap-12 overflow-y-auto">
-            <!-- Key Metrics Summary Cards -->
-            <section class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {{ dashboard_card("Avg Price", "$1.43", "blue") }}
-                {{ dashboard_card("Volatility", "8%", "yellow") }}
-                {{ dashboard_card("Cheapest", "$1.22", "green") }}
-                {{ dashboard_card("Expensive", "$1.79", "red") }}
-            </section>
-            <!-- Time-Based Trends -->
-            {{ time_trends(chart_data) }}
-            <!-- Location Heatmap -->
-            {{ location_heatmap() }}
-            <!-- Fuel Type Comparison -->
-            {{ fuel_comparison(chart_data) }}
-            <!-- Predictive Analytics -->
-            {{ predictive_analytics() }}
-            <!-- Alerts & External Factors -->
-            {{ alerts_factors(chart_data) }}
-        </div>
-        <!-- Data uploading -->>
-        <div id="upload-modal"
-             class="hidden fixed inset-0 z-20 w-full items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white text-black w-full max-w-4xl rounded-md p-6 space-y-6 shadow-lg relative">
-                <button id="close-upload-modal"
-                        class="absolute top-3 right-3 text-gray-600 hover:text-gray-800">✕
-                </button>
-                <h2 class="text-2xl font-bold text-center">Upload Your CSV</h2>
-                <form id="upload-form"
-                      action="{{ url_for("fuel_upload.upload_file") }}"
-                      method="post"
-                      enctype="multipart/form-data"
-                      class="space-y-4">
-                    <label class="block text-sm font-medium">Select CSV File</label>
-                    <input name="file"
-                           id="upload-csv"
-                           type="file"
-                           accept=".csv"
-                           required
-                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
-                    {{ button("Upload & Preview", id="upload-btn", variant="black", submit=True) }}
-                </form>
-                {% if table %}
-                    <div class="pt-4">
-                        <h3 class="text-xl font-semibold mb-2">Data Preview</h3>
-                        <div class="relative w-full border rounded">
-                            <div class="overflow-x-auto w-full block max-h-64">
-                                <table class="min-w-full table-auto text-xs">
-                                    {{ table_header|safe }}
-                                    <tbody>
-                                    {% for row in sample %}
-                                        <tr>
-                                            {% for val in row.values() %}
-                                                <td class="border px-2 py-1 whitespace-nowrap truncate">{{ val }}</td>{% endfor %}
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
+            <!-- Dashboard Content -->
+            <div class="p-6 flex flex-col gap-12 overflow-y-auto">
+                <!-- Key Metrics Summary Cards -->
+                <section class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    {{ dashboard_card('Avg Price per L',   metrics.avg_price,   'blue') }}
+                    {{ dashboard_card('Volatility',  metrics.volatility,  'yellow') }}
+                    {{ dashboard_card('Cheapest per L',    metrics.cheapest,    'green') }}
+                    {{ dashboard_card('Expensive per L',   metrics.expensive,   'red') }}
+                </section>
+                <!-- Time-Based Trends -->
+                {{ time_trends(chart_data) }}
+                <!-- Location Heatmap -->
+                {{ location_heatmap() }}
+                <!-- Fuel Type Comparison -->
+                {{ fuel_comparison(chart_data) }}
+                <!-- Predictive Analytics -->
+                {{ predictive_analytics() }}
+            </div>
+            <!-- Data uploading -->>
+            <div id="upload-modal"
+                 class="hidden fixed inset-0 z-20 w-full items-center justify-center bg-black bg-opacity-50">
+                <div class="bg-white text-black w-full max-w-4xl rounded-md p-6 space-y-6 shadow-lg relative">
+                    <button id="close-upload-modal"
+                            class="absolute top-3 right-3 text-gray-600 hover:text-gray-800">✕</button>
+                    <h2 class="text-2xl font-bold text-center">Upload Your CSV</h2>
+                    <form id="upload-form"
+                          action="{{ url_for("fuel_upload.upload_file") }}"
+                          method="post"
+                          enctype="multipart/form-data"
+                          class="space-y-4">
+                        <label class="block text-sm font-medium">Select CSV File</label>
+                        <input name="file"
+                               id="upload-csv"
+                               type="file"
+                               accept=".csv"
+                               required
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                        {{ button("Download Template", variant="default", href = url_for('fuel_upload.download_template') ) }}
+                        {{ button("Upload & Preview", id="upload-btn", variant="black", submit=True) }}
+                    </form>
+                    {% if table %}
+                        <div class="pt-4">
+                            <h3 class="text-xl font-semibold mb-2">Data Preview</h3>
+                            <div class="relative w-full border rounded">
+                                <div class="overflow-x-auto w-full block max-h-64">
+                                    <table class="min-w-full table-auto text-xs">
+                                        {{ table_header|safe }}
+                                        <tbody>
+                                            {% for row in sample %}
+                                                <tr>
+                                                    {% for val in row.values() %}<td class="border px-2 py-1 whitespace-nowrap truncate">{{ val }}</td>{% endfor %}
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                {% endif %}
-                {% if stats %}
-                    <div class="pt-4">
-                        <h3 class="text-xl font-semibold mb-2">Basic Statistics</h3>
-                        <div class="overflow-x-auto max-h-64">{{ stats|safe }}</div>
-                    </div>
-                {% endif %}
+                    {% endif %}
+                    {% if stats %}
+                        <div class="pt-4">
+                            <h3 class="text-xl font-semibold mb-2">Basic Statistics</h3>
+                            <div class="overflow-x-auto max-h-64">{{ stats|safe }}</div>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
+            {{ loading(id="uploading", variant="white") }}
         </div>
-        {{ loading(id="uploading", variant="white") }}
-    </div>
-    <!-- Main Panel End -->
+        <!-- Main Panel End -->
     </div>
     <script src="{{ url_for('static', filename='js/dashboard-sidebar.js') }}"></script>
     <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>

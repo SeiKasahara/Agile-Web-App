@@ -1,7 +1,11 @@
-from flask import Blueprint, redirect, render_template, url_for, request
+from flask import Blueprint, jsonify, render_template, request
 from flask_login import login_required, current_user
-from app.models import UploadBatch, FuelPrice
+from sqlalchemy import func
+from app.models import FuelType, PriceRecord, Station, UploadBatch
 import pandas as pd
+from app import db
+from app.utils.station_loader import load_wa_stations
+import numpy as np
 
 dashboard_bp = Blueprint(
     'dashboard',
@@ -10,122 +14,247 @@ dashboard_bp = Blueprint(
     template_folder="../../templates/main"
 )
 
-
 @dashboard_bp.route('/')
 @login_required
 def dashboard_home():
-    # Get filters from query parameters
-    fuel_type = request.args.get('fuel_type')
-    filter_date = request.args.get('date')
-    location = request.args.get('location')
+    # load basic station geodata
+    load_wa_stations()
 
-    # 1. Get the user's last upload batch
+    # —— 1. Get the latest batch —— 
     last_batch = (
         UploadBatch.query
         .filter_by(user_id=current_user.id)
         .order_by(UploadBatch.uploaded_at.desc())
         .first()
     )
-    # If no batch exists, just return the dashboard with empty data
     if not last_batch:
         empty = {'labels': [], 'datasets': []}
-        chart_data = {'daily': empty, 'weekly': empty, 'monthly': empty}
-        return render_template(
-            'main/dashboard.html',
+        return render_template('main/dashboard.html',
                                user=current_user,
-                               chart_data=chart_data)
+                               chart_data={'daily': empty, 'weekly': empty, 'monthly': empty},
+                               fuel_types=['All Fuel Types'],
+                               locations=['All Locations'])
 
-    # 2. load the all the data from that batch
-    prices = FuelPrice.query.filter_by(batch_id=last_batch.id).all()
-    df = pd.DataFrame([{
-        'publish_date': p.publish_date,
-        'fuel_type': p.trading_name,
-        'price': p.product_price,
-        'location': p.location
-    } for p in prices])
-
-    # 3. Convert to datetime and add grouping fields
-    df['publish_date'] = pd.to_datetime(df['publish_date'])
-    df['date_str'] = df['publish_date'].dt.strftime('%Y-%m-%d')
-    df['week_str'] = 'Week ' + df['publish_date'].dt.isocalendar().week.astype(str)
+    # —— 2. From DB to dataframe —— 
+    qry = (
+        db.session.query(
+            PriceRecord.date.label('publish_date'),
+            FuelType.name.label('fuel_type'),
+            PriceRecord.price.label('price'),
+            Station.suburb.label('location')
+        )
+        .join(FuelType, PriceRecord.fuel_type_id == FuelType.id)
+        .join(Station, PriceRecord.station_id == Station.id)
+        .filter(PriceRecord.batch_id == last_batch.id)
+    )
+    
+    sql_str = str(qry.statement.compile(compile_kwargs={"literal_binds": True}))
+    df = pd.read_sql_query(sql=sql_str, con=db.engine, parse_dates=['publish_date'])
+ 
+    df['date_str']  = df['publish_date'].dt.strftime('%Y-%m-%d')
+    df['week_str']  = 'Week ' + df['publish_date'].dt.isocalendar().week.astype(str)
     df['month_str'] = df['publish_date'].dt.strftime('%Y-%m')
 
-    fuel_types = ['All Fuel Types'] + sorted(df['fuel_type'].unique().tolist())
-    locations = ['All Locations'] + sorted(df['location'].unique().tolist())
+    fuel_types = FuelType.query.order_by(FuelType.name).all()
+    locations  = ['All Locations']    + sorted(df['location'].unique().tolist())
+    sel_fuel = request.args.get('fuel_type', 'All Fuel Types')
+    sel_loc  = request.args.get('location',  'All Locations')
+    sel_date = request.args.get('date')
 
-    df_filtered = df.copy()
-    if fuel_type != 'All Fuel Types':
-        df_filtered = df_filtered[df_filtered['fuel_type'] == fuel_type]
-    if location != 'All Locations':
-        df_filtered = df_filtered[df_filtered['location'] == location]
-    if filter_date:
-        df_filtered = df_filtered[df_filtered['date_str'] == filter_date]
+    df_f = df
+    if sel_fuel != 'All Fuel Types':
+        df_f = df_f[df_f['fuel_type'] == sel_fuel]
+    if sel_loc != 'All Locations':
+        df_f = df_f[df_f['location'] == sel_loc]
+    if sel_date:
+        df_f = df_f[df_f['date_str'] == sel_date]
 
     MAX_POINTS = 1000
-    if len(df_filtered) > MAX_POINTS:
-        # 这里按 fuel_type 分层，各取等份样本，也可以直接 df_filtered.sample(n=MAX_POINTS)
-        types = df_filtered['fuel_type'].unique().tolist()
-        per_type = max(1, MAX_POINTS // len(types))
-        df_filtered = (
-            df_filtered
-            .groupby('fuel_type', group_keys=False)
-            .apply(lambda g: g.sample(n=min(len(g), per_type), random_state=42))
-        )
-        # 如果依然超过，再全局抽样到 MAX_POINTS
-        if len(df_filtered) > MAX_POINTS:
-            df_filtered = df_filtered.sample(n=MAX_POINTS, random_state=42)
+    if len(df_f) > MAX_POINTS:
+        df_f = df_f.sample(n=MAX_POINTS, random_state=42)
 
-    # —— 接下来照常构建 daily/weekly/monthly 三张图的数据 ——
-    def build_chart(df_grouped, label_col):
-        labels = sorted(df_grouped[label_col].unique().tolist())
+    def build_chart(dfg, by):
+        labels = sorted(dfg[by].unique())
         datasets = []
-        for ft in df_grouped['fuel_type'].unique():
-            sub = df_grouped[df_grouped['fuel_type'] == ft]
-            data = [
-                round(sub[sub[label_col] == lbl]['price'].mean(), 2)
-                if not sub[sub[label_col] == lbl].empty else None
-                for lbl in labels
-            ]
+        for ft in dfg['fuel_type'].unique():
+            sub = dfg[dfg['fuel_type'] == ft]
+            data = [ round(sub[sub[by]==lbl]['price'].mean(), 2)
+                     if lbl in sub[by].values else None
+                     for lbl in labels ]
             datasets.append({'label': ft, 'data': data, 'tension': 0.1})
         return {'labels': labels, 'datasets': datasets}
 
     chart_data = {
-        'daily': build_chart(df_filtered, 'date_str'),
-        'weekly': build_chart(df_filtered, 'week_str'),
-        'monthly': build_chart(df_filtered, 'month_str'),
+        'daily':   build_chart(df_f, 'date_str'),
+        'weekly':  build_chart(df_f, 'week_str'),
+        'monthly': build_chart(df_f, 'month_str'),
     }
 
-    return render_template(
-        'main/dashboard.html',
-        user=current_user,
-        chart_data=chart_data,
-        fuel_types=fuel_types,
-        locations=locations
+    if not df_f.empty:
+        avg_price   = df_f['price'].mean()
+        volatility  = df_f['price'].std() * 100
+        min_price   = df_f['price'].min()
+        max_price   = df_f['price'].max()
+    else:
+        avg_price = volatility = min_price = max_price = 0
+
+    metrics = {
+        'avg_price':   f"${avg_price:.2f}",
+        'volatility':  f"{volatility:.2f}%",
+        'cheapest':    f"${min_price:.2f}",
+        'expensive':   f"${max_price:.2f}"
+    }
+
+    return render_template('main/dashboard.html',
+                           user=current_user,
+                           chart_data=chart_data,
+                           fuel_types=fuel_types,
+                           locations=locations,
+                           metrics=metrics)
+
+@dashboard_bp.route('/data')
+@login_required
+def heatmap_data():
+    sel_fuel = request.args.get('fuel_type')
+    sel_loc  = request.args.get('location')
+    sel_date = request.args.get('date')
+
+    qry = (
+        db.session.query(
+            Station.latitude,
+            Station.longitude,
+            func.avg(PriceRecord.price).label('weight')
+        )
+        .join(PriceRecord, Station.id == PriceRecord.station_id)
+        .filter(PriceRecord.batch.has(user_id=current_user.id))
     )
 
+    if sel_fuel and sel_fuel != 'All Fuel Types':
+        qry = qry.join(FuelType, PriceRecord.fuel_type_id == FuelType.id) \
+                 .filter(FuelType.name == sel_fuel)
 
-    # Build chart helper
-    def build_chart(df_grouped, label_col):
-        labels = sorted(df_grouped[label_col].unique().tolist())
-        datasets = []
-        for fuel in df_grouped['fuel_type'].unique():
-            data = []
-            sub = df_grouped[df_grouped['fuel_type'] == fuel]
-            for lbl in labels:
-                vals = sub[sub[label_col] == lbl]['price']
-                data.append(round(vals.mean(), 2) if not vals.empty else None)
-            datasets.append({
-                'label': fuel,
-                'data': data,
-                'tension': 0.1
-            })
-        return {'labels': labels, 'datasets': datasets}
-        # 4. Construct the data of the three charts of daily/weekly/monthly
+    if sel_loc and sel_loc != 'All Locations':
+        qry = qry.filter(Station.suburb == sel_loc)
 
-    chart_data = {
-        'daily': build_chart(df, 'date_str'),
-        'weekly': build_chart(df, 'week_str'),
-        'monthly': build_chart(df, 'month_str')
-    }
+    if sel_date:
+        try:
+            from datetime import datetime
+            date_obj = datetime.strptime(sel_date, '%Y-%m-%d').date()
+            qry = qry.filter(PriceRecord.date == date_obj)
+        except ValueError:
+            pass
 
-    return render_template('main/dashboard.html', user=current_user, chart_data=chart_data)
+    qs = (
+        qry
+        .filter(
+            Station.latitude.isnot(None),
+            Station.longitude.isnot(None),
+            Station.name.isnot(None),
+        )
+        .group_by(Station.id)
+        .all()
+    )
+
+    MIN_LAT, MAX_LAT = -35.0, -13.5
+    MIN_LNG, MAX_LNG = 112.9, 129.0
+
+    points = []
+    for lat, lng, w in qs:
+        if lat is None or lng is None or w is None:
+            continue
+        if not (MIN_LAT <= lat <= MAX_LAT and MIN_LNG <= lng <= MAX_LNG):
+            continue
+        points.append([lat, lng, float(w)])
+
+    return jsonify(points=points)
+
+
+@dashboard_bp.route('/forecast')
+@login_required
+def get_forecast():
+    sel_fuel = request.args.get('fuel_type')
+    sel_loc  = request.args.get('location')
+    algorithm = request.args.get('algorithm', 'linear')
+    query_num = 50000
+
+    qry = (
+        db.session.query(PriceRecord.date.label('date'),
+                         PriceRecord.price.label('price'))
+        .join(FuelType, PriceRecord.fuel_type_id == FuelType.id)
+        .join(Station, PriceRecord.station_id == Station.id)
+        .filter(PriceRecord.batch.has(user_id=current_user.id))
+    )
+
+    if sel_fuel and sel_fuel != 'All Fuel Types':
+        qry = (qry.filter(FuelType.name == sel_fuel))
+
+    if sel_loc and sel_loc != 'All Locations':
+        qry = (qry.filter(Station.suburb == sel_loc))
+
+    rows = qry.order_by(PriceRecord.date.desc()).limit(query_num).all()
+    if not rows:
+        return jsonify(dates=[], historical=[], forecast=[])
+
+    df = pd.DataFrame(rows, columns=['date','price'])
+    df['date'] = pd.to_datetime(df['date'])
+
+    df = (
+        df.groupby('date', as_index=False)['price']
+          .min()
+          .sort_values('date')
+    )
+
+    if len(df) > 30:
+        df = df.iloc[-30:]
+
+    if df['date'].nunique() == 1:
+        X = np.arange(len(df)).reshape(-1,1)
+    else:
+        X = (df['date'] - df['date'].min()).dt.days.values.reshape(-1,1)
+    y = df['price'].values
+
+    if algorithm == 'seasonal':
+        from sklearn.linear_model import LinearRegression
+        t = X.flatten() 
+        sin7 = np.sin(2 * np.pi * t / 7)
+        cos7 = np.cos(2 * np.pi * t / 7)
+        X_seasonal = np.vstack([t, sin7, cos7]).T
+
+        model = LinearRegression().fit(X_seasonal, y)
+
+    elif algorithm == 'tree':
+        from sklearn.tree import DecisionTreeRegressor
+        model = DecisionTreeRegressor(max_depth=5).fit(X, y)
+    else:  # default to linear
+        from sklearn.linear_model import LinearRegression
+        model = LinearRegression().fit(X, y)
+
+    dates      = df['date'].dt.strftime('%Y-%m-%d').tolist()
+    historical = np.round(y, 2).tolist()
+
+    last_day   = df['date'].max()
+    base_days  = (last_day - df['date'].min()).days if df['date'].nunique()>1 else 0
+    future_idxs = np.arange(1,8).reshape(-1,1) + base_days
+
+    future_dates = [
+        (last_day + pd.Timedelta(days=i)).strftime('%Y-%m-%d')
+        for i in range(1,8)
+    ]
+
+    if algorithm == 'seasonal':
+        future_t = future_idxs.flatten()
+        sin7_f = np.sin(2 * np.pi * future_t / 7)
+        cos7_f = np.cos(2 * np.pi * future_t / 7)
+        Xf = np.vstack([future_t, sin7_f, cos7_f]).T
+        future_preds = model.predict(Xf).round(2).tolist()
+    else:
+        future_preds = model.predict(future_idxs).round(2).tolist()
+    
+    forecast = [
+        {'date': d, 'price': p}
+        for d, p in zip(future_dates, future_preds)
+    ]
+
+    return jsonify(dates=dates,
+                   historical=historical,
+                   forecast=forecast)

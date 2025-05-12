@@ -8,6 +8,8 @@
         <title>FuelPrice Analysis WebApp</title>
         <link rel="stylesheet"
               href="{{ url_for('static', filename='css/style.css') }}">
+        <link rel="stylesheet"
+              href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <link href="https://fonts.cdnfonts.com/css/avenir" rel="stylesheet">
     </head>
     <body class="bg-black">
@@ -21,4 +23,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="{{ url_for('static', filename='js/tailwind.config.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 </html>

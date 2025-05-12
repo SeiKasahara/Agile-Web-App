@@ -45,34 +45,65 @@ class UploadBatch(db.Model):
     user_id       = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     uploaded_at   = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     filename      = db.Column(db.String(200), nullable=True)   # Original File Name
-    description   = db.Column(db.String(200), nullable=True)   # User description
 
     user          = db.relationship("User", back_populates="uploads")
-    prices        = db.relationship("FuelPrice", back_populates="batch", cascade="all, delete-orphan")
+    prices        = db.relationship("PriceRecord", back_populates="batch", cascade="all, delete-orphan")
 
+class Station(db.Model):
+    __tablename__ = 'stations'
+    id             = db.Column(db.Integer, primary_key=True)
+    name           = db.Column(db.String(100), nullable=False)
+    address        = db.Column(db.String(200), nullable=False)
+    suburb         = db.Column(db.String(100), nullable=True)
+    postcode       = db.Column(db.String(20), nullable=True)
+    area           = db.Column(db.String(100), nullable=True)
+    region         = db.Column(db.String(100), nullable=True, index=True)
+    latitude       = db.Column(db.Float, nullable=True)
+    longitude      = db.Column(db.Float, nullable=True)
 
-class FuelPrice(db.Model):
-    __tablename__ = "fuel_prices"
-    id = db.Column(db.Integer, primary_key=True)
-    batch_id = db.Column(db.Integer, db.ForeignKey("upload_batches.id"), nullable=False, index=True)
+    __table_args__ = (
+        db.UniqueConstraint('address','postcode', name='uq_station_address'),
+    )
 
-    publish_date = db.Column(db.Date,    nullable=False, index=True)   # PUBLISH_DATE
-    trading_name = db.Column(db.String(100), nullable=False)           # TRADING_NAME
-    brand_description = db.Column(db.String(100), nullable=True)            # BRAND_DESCRIPTION
-    product_description = db.Column(db.String(100), nullable=False)           # PRODUCT_DESCRIPTION
-    product_price = db.Column(db.Float,   nullable=False)               # PRODUCT_PRICE
+    prices = db.relationship('PriceRecord', back_populates='station')
 
-    address = db.Column(db.String(200), nullable=True)            # ADDRESS
-    location = db.Column(db.String(100), nullable=True)            # LOCATION
-    postcode = db.Column(db.String(20),  nullable=True)            # POSTCODE
+class FuelType(db.Model):
+    __tablename__ = 'fuel_types'
+    id   = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
 
-    area_description = db.Column(db.String(100), nullable=True)            # AREA_DESCRIPTION
-    region_description = db.Column(db.String(100), nullable=True, index=True)# REGION_DESCRIPTION
+    prices = db.relationship('PriceRecord', back_populates='fuel_type')
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+class PriceRecord(db.Model):
+    __tablename__ = 'price_records'
+    id            = db.Column(db.Integer, primary_key=True)
+    station_id    = db.Column(db.Integer, db.ForeignKey('stations.id'), nullable=False, index=True)
+    fuel_type_id  = db.Column(db.Integer, db.ForeignKey('fuel_types.id'), nullable=False)
+    date          = db.Column(db.Date, nullable=False, index=True)
+    price         = db.Column(db.Float, nullable=False)
+    batch_id      = db.Column(
+                       db.Integer,
+                       db.ForeignKey("upload_batches.id"),
+                       nullable=False,
+                       index=True
+                    )
+    batch         = db.relationship("UploadBatch", back_populates="prices")
+    station       = db.relationship('Station', back_populates='prices')
+    fuel_type     = db.relationship('FuelType', back_populates='prices')
 
-    batch = db.relationship("UploadBatch", back_populates="prices")
+class DataShare(db.Model):
+    __tablename__ = 'data_shares'
+    id           = db.Column(db.Integer, primary_key=True)
+    owner_id     = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    batch_id     = db.Column(db.Integer, db.ForeignKey('upload_batches.id'), nullable=False)
+    shared_to_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __repr__(self):
-        return (f"<FuelPrice {self.publish_date} {self.trading_name} "
-                f"{self.product_description} ${self.product_price:.2f}>")
+    owner        = db.relationship('User', foreign_keys=[owner_id], backref='shares_made')
+    batch        = db.relationship('UploadBatch', backref='shares')
+    shared_to    = db.relationship('User', foreign_keys=[shared_to_id], backref='shares_received')
+
+    __table_args__ = (
+        db.UniqueConstraint('owner_id','batch_id','shared_to_id',
+                            name='uq_share_owner_batch_user'),
+    )

@@ -1,91 +1,119 @@
 {% macro predictive_analytics() %}
     <section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
-        <h2 class="text-2xl font-bold mb-6">Forecast & Best Time to Fill</h2>
-        <div class="w-full h-64 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">
-            <!-- Chart Canvas -->
-            <canvas id="forecastChart" class="w-full h-64 block"></canvas>
-            <!-- Forecast Info -->
-            <div id="forecastInfo" class="mt-4 text-base text-gray-400">
-                Loading forecast...
+        <h2 class="text-2xl font-bold mb-6 text-white">Forecast &amp; Best Time to Fill</h2>
+        <div class="flex items-center space-x-4 mb-4">
+            <label for="algo-select" class="text-white font-medium">Algorithm:</label>
+            <select id="algo-select"
+                    class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
+                <option value="linear">Linear Regression</option>
+                <option value="seasonal">Seasonal Regression</option>
+                <option value="tree">Decision Tree</option>
+            </select>
+        </div>
+        <div class="w-full max-w-4xl mx-auto bg-gray-700 rounded-md overflow-hidden">
+            <div class="relative w-full aspect-video">
+                <canvas id="forecastChart" class="absolute inset-0 w-full h-full"></canvas>
             </div>
+            <p id="forecastInfo" class="mt-4 text-center text-gray-300">Loading forecast...</p>
         </div>
     </section>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            {#
-            Dummy full dataset for demo purposes
-             In production, replace these arrays with real data from your backend.
-             For example, you might pass these via Jinja:
-               const fullDates = {{ dates | tojson | safe }};
-               const fullPrices = {{ prices | tojson | safe }};
-             Or fetch from an API endpoint:
-               fetch('/api/forecast')
-                 .then(res => res.json())
-                 .then(data => {
-                   const fullDates = data.dates;
-                   const fullPrices = data.prices;
-                   // ...initialize chart here...
-                 });
-             #}
-            const fullDates = [
-                '2025-04-20', '2025-04-21', '2025-04-22', '2025-04-23', '2025-04-24',
-                '2025-04-25', '2025-04-26', '2025-04-27', '2025-04-28', '2025-04-29',
-                '2025-04-30', '2025-05-01', '2025-05-02'
-            ];
-            const fullPrices = [5.50, 5.55, 5.60, 5.58, 5.62, 5.65, 5.63, 5.64, 5.66, 5.68, 5.70, 5.72, 5.75];
-            const splitIndex = Math.floor(fullDates.length * 0.8) - 1;
+        const ctx    = document.getElementById('forecastChart').getContext('2d');
+        const info   = document.getElementById('forecastInfo');
+        const select = document.getElementById('fuel_type_select');
+        const locSel  = document.getElementById('location_select');
+        const algo   = document.getElementById('algo-select');
+        const baseUrl= "{{ url_for('dashboard.get_forecast') }}";
+        
+        let chart    = null;
 
-            // Compute best fill point based on a predicted segment
-            const predictedValues = fullPrices.slice(splitIndex + 1);
-            const maxPred = Math.max(...predictedValues);
-            const bestIdx = fullPrices.indexOf(maxPred);
+        async function loadForecast(fuelType) {
+            info.textContent = 'Loading forecast...';
+            info.className   = 'mt-4 text-center text-gray-300';
+
+            try {
+            const params = new URLSearchParams({
+                fuel_type: select.value,
+                location:  locSel.value,
+                algorithm: algo.value,
+            });
+            const url = `${baseUrl}?${params}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`Status ${res.status}`);
+            const { dates, historical, forecast } = await res.json();
+
+            const fullDates  = [...dates, ...forecast.map(f=>f.date)];
+            const fullPrices = [...historical, ...forecast.map(f=>f.price)];
+            const splitIndex = historical.length - 1;
+
+            let bestIdx = null, bestPrice = Infinity;
+            forecast.forEach((f,i) => {
+                if (f.price < bestPrice) {
+                bestPrice = f.price;
+                bestIdx   = dates.length + i;
+                }
+            });
             const bestDate = fullDates[bestIdx];
-            const bestPrice = maxPred;
 
-            // Draw chart with segment styling
-            const chart = document.getElementById('forecastChart').getContext('2d');
-            new Chart(chart, {
+            if (chart) chart.destroy();
+
+            chart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: fullDates,
-                    datasets: [
-                        {
-                            label: 'Price',
-                            data: fullPrices,
-                            tension: 0.1,
-                            spanGaps: false,
-                            segment: {
-                                borderColor: chart => chart.p0DataIndex <= splitIndex ? '#3b82f6' : '#facc15',
-                                borderDash: chart => chart.p0DataIndex <= splitIndex ? [] : [5, 5]
-                            },
-                            borderWidth: 2,
-                            pointRadius: 4,
-                            pointBackgroundColor: chart => chart.p0DataIndex <= splitIndex ? '#3b82f6' : '#facc15'
-                        },
-                        {
-                            label: 'Best Fill',
-                            data: fullPrices.map((_, idx) => idx === bestIdx ? bestPrice : null),
-                            pointRadius: 6,
-                            pointBackgroundColor: '#f87171',
-                            showLine: false
-                        }
-                    ]
+                labels: fullDates,
+                datasets: [
+                    {
+                    label: 'Historical Minimum',
+                    data: historical,
+                    borderColor: '#3b82f6',
+                    tension: 0.2,
+                    spanGaps: false,
+                    pointRadius: 2
+                    },
+                    {
+                    label: 'Forecast',
+                    data: fullPrices.map((v,i)=> i>splitIndex? v:null),
+                    borderColor: '#facc15',
+                    borderDash: [6,4],
+                    tension: 0.2,
+                    spanGaps: false,
+                    pointRadius: 2
+                    },
+                    {
+                    label: 'Best Fill',
+                    data: fullPrices.map((v,i)=> i===bestIdx? v:null),
+                    pointBackgroundColor: '#10b981',
+                    pointRadius: 6,
+                    showLine: false
+                    }
+                ]
                 },
                 options: {
-                    scales: {
-                        x: {title: {display: true, text: 'Date', color: '#fff'}},
-                        y: {title: {display: true, text: 'Price (¥)', color: '#fff'}}
-                    },
-                    plugins: {
-                        legend: {labels: {color: '#fff'}}
-                    }
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: '#ddd' }, title: { display: true, text: 'Date', color: '#fff' } },
+                    y: { ticks: { color: '#ddd' }, title: { display: true, text: 'Price', color: '#fff' } }
+                },
+                plugins: { legend: { labels: { color: '#fff' } } }
                 }
             });
 
-            // Update info text
-            document.getElementById('forecastInfo').textContent =
-                `Best fill time: ${bestDate}, Predicted price: $${bestPrice.toFixed(2)}`;
+            info.textContent = `Best time to fill: ${bestDate} at $${bestPrice.toFixed(2)}`;
+            info.className   = 'mt-4 text-center text-green-400';
+            }
+            catch(err) {
+            console.error(err);
+            info.textContent = 'Failed to load forecast.';
+            info.className   = 'mt-4 text-center text-red-500';
+            }
+        }
+        loadForecast(select.value);
+        [select, algo, locSel].forEach(el =>
+        el.addEventListener('change', loadForecast)
+        );
         });
     </script>
-{% endmacro %} 
+{% endmacro %}

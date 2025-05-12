@@ -10,6 +10,7 @@ from app.routes.fuel_upload import fuel_upload_bp
 
 from app.utils.mail import mail
 from app.routes.dashboard import dashboard_bp
+from app.routes.share import share_bp
 
 migrate = Migrate()
 
@@ -48,6 +49,7 @@ def create_app():
     app.register_blueprint(fuel_upload_bp)
 
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(share_bp)
     
     # Create the database if it doesn't exist
     with app.app_context():
