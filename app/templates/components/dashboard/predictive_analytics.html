@@ -1,0 +1,91 @@
+{% macro predictive_analytics() %}
+    <section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+        <h2 class="text-2xl font-bold mb-6">Forecast & Best Time to Fill</h2>
+        <div class="w-full h-64 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">
+            <!-- Chart Canvas -->
+            <canvas id="forecastChart" class="w-full h-64 block"></canvas>
+            <!-- Forecast Info -->
+            <div id="forecastInfo" class="mt-4 text-base text-gray-400">
+                Loading forecast...
+            </div>
+        </div>
+    </section>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            {#
+            Dummy full dataset for demo purposes
+             In production, replace these arrays with real data from your backend.
+             For example, you might pass these via Jinja:
+               const fullDates = {{ dates | tojson | safe }};
+               const fullPrices = {{ prices | tojson | safe }};
+             Or fetch from an API endpoint:
+               fetch('/api/forecast')
+                 .then(res => res.json())
+                 .then(data => {
+                   const fullDates = data.dates;
+                   const fullPrices = data.prices;
+                   // ...initialize chart here...
+                 });
+             #}
+            const fullDates = [
+                '2025-04-20', '2025-04-21', '2025-04-22', '2025-04-23', '2025-04-24',
+                '2025-04-25', '2025-04-26', '2025-04-27', '2025-04-28', '2025-04-29',
+                '2025-04-30', '2025-05-01', '2025-05-02'
+            ];
+            const fullPrices = [5.50, 5.55, 5.60, 5.58, 5.62, 5.65, 5.63, 5.64, 5.66, 5.68, 5.70, 5.72, 5.75];
+            const splitIndex = Math.floor(fullDates.length * 0.8) - 1;
+
+            // Compute best fill point based on a predicted segment
+            const predictedValues = fullPrices.slice(splitIndex + 1);
+            const maxPred = Math.max(...predictedValues);
+            const bestIdx = fullPrices.indexOf(maxPred);
+            const bestDate = fullDates[bestIdx];
+            const bestPrice = maxPred;
+
+            // Draw chart with segment styling
+            const chart = document.getElementById('forecastChart').getContext('2d');
+            new Chart(chart, {
+                type: 'line',
+                data: {
+                    labels: fullDates,
+                    datasets: [
+                        {
+                            label: 'Price',
+                            data: fullPrices,
+                            tension: 0.1,
+                            spanGaps: false,
+                            segment: {
+                                borderColor: chart => chart.p0DataIndex <= splitIndex ? '#3b82f6' : '#facc15',
+                                borderDash: chart => chart.p0DataIndex <= splitIndex ? [] : [5, 5]
+                            },
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            pointBackgroundColor: chart => chart.p0DataIndex <= splitIndex ? '#3b82f6' : '#facc15'
+                        },
+                        {
+                            label: 'Best Fill',
+                            data: fullPrices.map((_, idx) => idx === bestIdx ? bestPrice : null),
+                            pointRadius: 6,
+                            pointBackgroundColor: '#f87171',
+                            showLine: false
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: {title: {display: true, text: 'Date', color: '#fff'}},
+                        y: {title: {display: true, text: 'Price (¥)', color: '#fff'}}
+                    },
+                    plugins: {
+                        legend: {labels: {color: '#fff'}}
+                    }
+                }
+            });
+
+            // Update info text
+            document.getElementById('forecastInfo').textContent =
+                `Best fill time: ${bestDate}, Predicted price: $${bestPrice.toFixed(2)}`;
+        });
+    </script>
+{% endmacro %} 

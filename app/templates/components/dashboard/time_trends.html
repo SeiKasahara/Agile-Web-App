@@ -1,0 +1,101 @@
+{% macro time_trends(chart_data) %}
+<section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+    <h2 class="text-2xl font-bold mb-6">Price Trends Over Time</h2>
+    <div class="flex gap-6 mb-4">
+        <button class="time-range-btn px-4 py-2 rounded-md transition-colors text-blue-400 font-semibold bg-blue-400/10" data-range="daily">Daily</button>
+        <button class="time-range-btn px-4 py-2 rounded-md transition-colors hover:text-blue-400 hover:bg-blue-400/10" data-range="weekly">Weekly</button>
+        <button class="time-range-btn px-4 py-2 rounded-md transition-colors hover:text-blue-400 hover:bg-blue-400/10" data-range="monthly">Monthly</button>
+    </div>
+    <div class="w-full h-64 bg-gray-700 rounded-md">
+        <canvas id="fuelPriceChart"></canvas>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Convert server-side chart_data into JavaScript object
+    const chartData = {{ chart_data|tojson }};
+    let chart = null;
+    let currentRange = 'daily';
+
+    // Update button highlight state based on active range
+    function updateButtonStates(activeRange) {
+        document.querySelectorAll('.time-range-btn').forEach(btn => {
+            if (btn.dataset.range === activeRange) {
+                btn.classList.add('text-blue-400', 'bg-blue-400/10');
+                btn.classList.remove('hover:text-blue-400', 'hover:bg-blue-400/10');
+            } else {
+                btn.classList.remove('text-blue-400', 'bg-blue-400/10');
+                btn.classList.add('hover:text-blue-400', 'hover:bg-blue-400/10');
+            }
+        });
+    }
+
+    // Initialize or update the Chart.js instance
+    function updateChart(range) {
+        if (range === currentRange) return;
+        currentRange = range;
+        updateButtonStates(range);
+
+        const newData = chartData[range];
+
+        if (!chart) {
+            // Create chart on first load
+            chart = new Chart(
+                document.getElementById('fuelPriceChart'),
+                {
+                    type: 'line',
+                    data: newData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 500
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                },
+                                ticks: {
+                                    autoSkip: true,
+                                    maxTicksLimit: 10  // Limit number of x-axis ticks
+                                }
+                            },
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Price (cents)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+        } else {
+            // Update labels and datasets in place
+            chart.data.labels = newData.labels;
+            chart.data.datasets = newData.datasets.map(ds => ({
+                label: ds.label,
+                data: ds.data,
+                tension: ds.tension,
+                borderColor: ds.borderColor,
+                backgroundColor: ds.backgroundColor || undefined
+            }));
+            chart.update();
+        }
+    }
+
+    // Attach click events to time range buttons
+    document.querySelectorAll('.time-range-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            updateChart(btn.dataset.range);
+        });
+    });
+
+    // Load initial chart with daily data
+    updateChart('daily');
+</script>
+{% endmacro %}
