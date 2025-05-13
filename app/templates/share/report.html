@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>FuelPrice Report — {{ user.first_name }}</title>
+    <title>FuelPrice Report — {{ first_name }}</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="description" content="FuelPrice Report Share" />
     <meta name="keywords" content="FuelPrice" />
@@ -16,7 +16,7 @@
   <body class="bg-gray-900 text-white font-sans p-6">
     <header class="mb-6">
       <h1 class="text-3xl font-bold">FuelPrice Analysis Report</h1>
-      <p class="text-gray-400">User: {{ user.first_name }} {{ user.last_name }}</p>
+      <p class="text-gray-400">User: {{ first_name }} {{ last_name }}</p>
       <ul class="mt-2 text-gray-300 space-y-1">
         <li>
           <strong>Fuel Type:</strong> {{ fuel_type }}

@@ -3,6 +3,9 @@
 {% from "components/button.html" import button %}
 {% block title %}Sign Up{% endblock %}
 {% block content %}
+  <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/sign-up-effect.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
   <div class="min-h-screen flex items-center justify-center  text-white relative z-10">
     <div class="w-full max-w-5xl flex flex-col md:flex-row shadow-lg relative">
       <!-- Left side -->
@@ -50,7 +53,4 @@
     </div>
   </div>
   <script src="{{ url_for('static', filename='js/sign-up.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/sign-up-effect.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
 {% endblock %}

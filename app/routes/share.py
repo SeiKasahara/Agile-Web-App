@@ -2,7 +2,7 @@
 from flask import Blueprint, abort, current_app, json, jsonify, render_template, request, url_for
 from flask_login import login_required, current_user
 from sqlalchemy import func
-from app.models import FuelType, PriceRecord, SharedReport, Station
+from app.models import FuelType, PriceRecord, SharedReport, Station, User
 from app import db
 from app.routes.dashboard import _gather_dashboard_data
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
@@ -38,16 +38,14 @@ def create_share():
     return jsonify(url=url)
 
 @share_bp.route('/report')
-@login_required
 def report():
     token = request.args.get('token')
+    
     if not token:
         abort(400)
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     try:
-        data = s.loads(token, max_age=3600)
-    except SignatureExpired:
-        return "Link expired", 403
+        data = s.loads(token)
     except BadSignature:
         return "Invalid link", 403
     
@@ -56,18 +54,39 @@ def report():
         abort(404)
 
     chart_data, metrics = _gather_dashboard_data(
-        user_id=current_user.id,
+        user_id=share.user_id,
         fuel_type=share.fuel_type,
         location=share.location,
         filter_date=share.date
     )
+
+    share_user = User.query.get(share.user_id)
+
+    expire_range = getattr(share_user, 'share_expire_range', None) or '7d'
+
+    if expire_range != 'never':
+        if expire_range.endswith('d'):
+            try:
+                days = int(expire_range[:-1])
+            except ValueError:
+                days = 7
+            max_age = days * 24 * 3600
+        else:
+            max_age = 7 * 24 * 3600
+        try:
+            s.loads(token, max_age=max_age)
+        except SignatureExpired:
+            return "Link expired", 403
+        except BadSignature:
+            return "Invalid link", 403
 
     forecast_config = json.loads(share.forecast_config)
     heatmap_points  = json.loads(share.heatmap_points_json)
 
     return render_template(
         'share/report.html',
-        user                = current_user,
+        first_name                = share_user.first_name,
+        last_name = share_user.last_name,
         chart_data    = chart_data,
         metrics       = metrics,
         fuel_type           = share.fuel_type,

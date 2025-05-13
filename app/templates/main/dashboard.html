@@ -6,9 +6,15 @@
 {% from "components/dashboard/fuel_comparison.html" import fuel_comparison %}
 {% from "components/dashboard/predictive_analytics.html" import predictive_analytics %}
 {% from "components/loading.html" import loading %}
+{% set sel_fuel = request.args.get('fuel_type') or user.default_fuel_type or 'All Fuel Types' %}
+{% set sel_loc = request.args.get('location')  or user.default_location  or 'All Locations' %}
 {% block title %}Fuel Dashboard{% endblock %}
 {% block content %}
-    <div id="dashboard-layout" class="min-h-screen text-white flex relative">
+    <script src="{{ url_for('static', filename='js/dashboard-sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
+    <div id="dashboard-layout"
+         class="min-h-screen text-white flex flex-col md:flex-row">
         <!-- Sidebar -->
         <aside id="sidebar"
                class="fixed inset-y-0 left-0 z-40 w-64 bg-black transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between p-6">
@@ -49,63 +55,81 @@
         <!-- Main Panel -->
         <div class="flex-1 flex flex-col relative">
             <!-- Topbar -->
-            <div class="flex items-center justify-between p-6 bg-black shadow-md">
+            <div class="flex items-center justify-between p-4 md:px-6 md:py-4 bg-black shadow-md">
+                <!-- Mobile: menu toggle -->
                 <button id="menu-toggle" class="text-white focus:outline-none">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
-                <h1 class="text-2xl font-bold">Fuel Price Dashboard</h1>
-                <!-- Right Controls -->
-                <form id="filter-form"
-                      class="hidden md:flex flex-wrap gap-4 items-center"
-                      method="get"
-                      action="{{ url_for("dashboard.dashboard_home") }}">
-                    <!-- Date Choice -->
+                <!-- Title -->
+                <h1 class="text-lg sm:text-xl md:text-2xl font-bold flex-1 text-center">Fuel Price Dashboard</h1>
+                <!-- Desktop Filters -->
+                <div class="hidden md:flex flex-wrap items-center gap-4 md:justify-end">
                     <input id="date_select"
                            type="date"
                            name="date"
                            value="{{ request.args.get('date', '') }}"
                            class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none" />
-                    <!-- FuelType -->
                     <select id="fuel_type_select"
                             name="fuel_type"
                             class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
                         <option value="All Fuel Types"
-                                {% if request.args.get('fuel_type','All Fuel Types') == 'All Fuel Types' %}selected{% endif %}>
-                            All Fuel Types
-                        </option>
+                                {% if sel_fuel == 'All Fuel Types' %}selected{% endif %}>All Fuel Types</option>
                         {% for ft in fuel_types %}
-                            <option value="{{ ft.name }}"
-                                    {% if request.args.get('fuel_type') == ft.name %}selected{% endif %}>
-                                {{ ft.name }}
-                            </option>
+                            <option value="{{ ft.name }}" {% if sel_fuel == ft.name %}selected{% endif %}>{{ ft.name }}</option>
                         {% endfor %}
                     </select>
-                    <!-- Location -->
                     <select id="location_select"
                             name="location"
                             class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
                         <option value="All Locations"
-                                {% if request.args.get('location','All Locations') == 'All Locations' %}selected{% endif %}>
-                            All Locations
-                        </option>
+                                {% if sel_loc == 'All Locations' %}selected{% endif %}>All Locations</option>
                         {% for loc in locations if loc != 'All Locations' %}
-                            <option value="{{ loc }}"
-                                    {% if request.args.get('location') == loc %}selected{% endif %}>{{ loc }}</option>
+                            <option value="{{ loc }}" {% if sel_loc == loc %}selected{% endif %}>{{ loc }}</option>
                         {% endfor %}
                     </select>
                     <div>{{ button("Upload Data", href="javascript:void(0);", variant="default", id="open-upload-modal") }}</div>
-                </form>
+                </div>
             </div>
+            <!-- Filters (mobile) -->
+            <form id="filter-form"
+                  class="md:hidden flex flex-wrap gap-4 items-center p-4 bg-gray-800"
+                  method="get"
+                  action="{{ url_for("dashboard.dashboard_home") }}">
+                <input id="date_select"
+                       type="date"
+                       name="date"
+                       value="{{ request.args.get('date', '') }}"
+                       class="bg-gray-700 text-white rounded-md px-3 py-2 focus:outline-none" />
+                <select id="fuel_type_select"
+                        name="fuel_type"
+                        class="bg-gray-700 text-white rounded-md px-3 py-2 focus:outline-none">
+                    <option value="All Fuel Types"
+                            {% if sel_fuel == 'All Fuel Types' %}selected{% endif %}>All Fuel Types</option>
+                    {% for ft in fuel_types %}
+                        <option value="{{ ft.name }}" {% if sel_fuel == ft.name %}selected{% endif %}>{{ ft.name }}</option>
+                    {% endfor %}
+                </select>
+                <select id="location_select"
+                        name="location"
+                        class="bg-gray-700 text-white rounded-md px-3 py-2 focus:outline-none">
+                    <option value="All Locations"
+                            {% if sel_loc == 'All Locations' %}selected{% endif %}>All Locations</option>
+                    {% for loc in locations if loc != 'All Locations' %}
+                        <option value="{{ loc }}" {% if sel_loc == loc %}selected{% endif %}>{{ loc }}</option>
+                    {% endfor %}
+                </select>
+                <div>{{ button("Upload Data", href="javascript:void(0);", variant="default", id="open-upload-modal-mobile") }}</div>
+            </form>
             <!-- Dashboard Content -->
             <div class="p-6 flex flex-col gap-12 overflow-y-auto">
                 <!-- Key Metrics Summary Cards -->
-                <section class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {{ dashboard_card('Avg Price per L',   metrics.avg_price,   'blue') }}
+                <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                    {{ dashboard_card('Avg Price',   metrics.avg_price,   'blue') }}
                     {{ dashboard_card('Volatility',  metrics.volatility,  'yellow') }}
-                    {{ dashboard_card('Cheapest per L',    metrics.cheapest,    'green') }}
-                    {{ dashboard_card('Expensive per L',   metrics.expensive,   'red') }}
+                    {{ dashboard_card('Cheapest',    metrics.cheapest,    'green') }}
+                    {{ dashboard_card('Expensive',   metrics.expensive,   'red') }}
                 </section>
                 <!-- Time-Based Trends -->
                 {{ time_trends(chart_data) }}
@@ -118,7 +142,7 @@
             </div>
             <!-- Data uploading -->
             <div id="upload-modal"
-                 class="hidden fixed inset-0 z-20 w-full items-center justify-center bg-black bg-opacity-50">
+                 class="hidden fixed inset-0 z-20 items-center justify-center bg-black bg-opacity-50">
                 <div class="bg-white text-black w-full max-w-4xl rounded-md p-6 space-y-6 shadow-lg relative">
                     <button id="close-upload-modal"
                             class="absolute top-3 right-3 text-gray-600 hover:text-gray-800">✕</button>
@@ -128,7 +152,7 @@
                           method="post"
                           enctype="multipart/form-data"
                           class="space-y-4">
-                        <label class="block text-sm font-medium">Select CSV File</label>
+                        <p class="block text-sm font-medium">Select CSV File</p>
                         <input name="file"
                                id="upload-csv"
                                type="file"
@@ -195,7 +219,7 @@
                             <span>Facebook</span>
                         </a>
                         <a id="linkedin-share"
-                           class="flex-1 flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-black px-3 py-2 rounded">
+                           class="flex-1 flex items-center justify-center space-x-2 bg-blue-300 hover:bg-blue-400 text-black px-3 py-2 rounded">
                             <img src="{{ url_for('static',filename='assets/linkedin.svg') }}"
                                  class="w-5 h-5"
                                  height="1"
@@ -205,22 +229,13 @@
                         </a>
                     </div>
                     <div class="flex justify-end space-x-2">
-                        <button id="copy-share-btn"
-                                class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded text-sm">
-                            Copy
-                        </button>
-                        <button id="close-share-btn"
-                                class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded text-sm">
-                            Close
-                        </button>
+                        {{ button("Copy", id="copy-share-btn", variant="black") }}
+                        {{ button("Close", id="close-share-btn", variant="default") }}
                     </div>
                 </div>
             </div>
         </div>
         <!-- Main Panel End -->
     </div>
-    <script src="{{ url_for('static', filename='js/dashboard-sidebar.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

@@ -21,9 +21,8 @@ class User(db.Model, UserMixin):
     default_fuel_type = db.Column(db.String(32), default='Unleaded')
     default_date_range = db.Column(db.String(16), default='7d')    # e.g. '7d','30d'
     default_location = db.Column(db.String(64), nullable=True)
-    alert_threshold = db.Column(db.Float, nullable=True)
-    alert_frequency = db.Column(db.String(16), default='daily') # e.g. 'realtime','daily','weekly'
     public_dashboard = db.Column(db.Boolean, default=False)
+    share_expire_range = db.Column(db.String(16), default='7d')    
     uploads = db.relationship("UploadBatch", back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password):

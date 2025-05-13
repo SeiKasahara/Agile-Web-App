@@ -1,9 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
   const openBtn = document.getElementById("open-upload-modal");
+  const openBtnMobile = document.getElementById("open-upload-modal-mobile");
   const closeBtn = document.getElementById("close-upload-modal");
   const modal = document.getElementById("upload-modal");
 
   openBtn.addEventListener("click", () => {
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  });
+  openBtnMobile.addEventListener("click", () => {
     modal.classList.remove("hidden");
     modal.classList.add("flex");
   });
