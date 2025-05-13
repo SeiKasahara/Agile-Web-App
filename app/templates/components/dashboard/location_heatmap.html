@@ -1,0 +1,74 @@
+{% macro location_heatmap() %}
+  <section class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+    <h2 class="text-2xl font-bold mb-4 text-white">Station Price Map</h2>
+    <div id="heatmap-map" class="w-full h-96 z-0 rounded-md overflow-hidden"></div>
+  </section>
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script>
+    function interpolateColor(val, min, max) {
+      const ratio = max > min ? (val - min) / (max - min) : 0;
+      const hue   = (1 - ratio) * 240;  
+      return `hsl(${hue}, 100%, 50%)`;
+    }
+
+    // Main
+    document.addEventListener('DOMContentLoaded', () => {
+      const map = L.map('heatmap-map').setView([-31.9, 115.9], 9);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+      const layerGroup = L.layerGroup().addTo(map);
+
+      const fuelSel = document.getElementById('fuel_type_select');
+      const locSel  = document.getElementById('location_select');
+      const dateSel = document.getElementById('date_select');
+
+      async function updateMap() {
+        layerGroup.clearLayers();
+        const params = new URLSearchParams({
+          fuel_type: fuelSel.value,
+          location:  locSel.value,
+          date:      dateSel.value
+        });
+        let url = `{{ url_for('dashboard.heatmap_data') }}?${params}`;
+
+        try {
+          const res = await fetch(url);
+          const { points } = await res.json();
+          if (!points.length) {
+            L.popup()
+            .setLatLng(map.getCenter())
+            .setContent('No data for your selection.')
+            .openOn(map);
+            return;
+          }
+
+          const prices = points.map(p => p[2]).filter(p => p != null);
+          const minP = Math.min(...prices);
+          const maxP = Math.max(...prices);
+
+          points.forEach(([lat, lng, price]) => {
+            if (lat==null||lng==null||price==null) return;
+            const color = interpolateColor(price, minP, maxP);
+            const radius= 4 + 8 * ((price - minP)/(maxP - minP || 1));  
+            L.circleMarker([lat, lng], {
+              radius, fillColor: color, color:'#000',
+              weight:0.5, fillOpacity:0.8
+            })
+            .bindPopup(`Price: $${price.toFixed(2)}`)
+            .addTo(layerGroup);
+          });
+        }
+        catch(err) {
+          console.error(err);
+        }
+      }
+
+      updateMap();
+      [fuelSel, locSel, dateSel].forEach(el =>
+        el.addEventListener('change', updateMap)
+      );
+    });
+  </script>
+{% endmacro %}

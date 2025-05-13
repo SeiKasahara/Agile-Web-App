@@ -2,6 +2,8 @@
 {% from "components/button.html" import button %}
 {% block title %}Welcome{% endblock %}
 {% block content %}
+    <!-- Libraries -->
+    <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
     <!-- Hero Section with Energy Core -->
     <div id="hero"
          class="relative h-screen w-full overflow-hidden flex flex-col items-center justify-center">
@@ -27,7 +29,7 @@
                     </div>
                     <div class="feature-card p-6 bg-gray-800 rounded-lg shadow opacity-0">
                         <h3 class="text-xl font-semibold mb-4">Location Comparison</h3>
-                        <p class="text-gray-400">Find the cheapest fuel across your city, region, or state.</p>
+                        <p class="text-gray-400">Find the cheapest fuel across whole WA state.</p>
                     </div>
                     <div class="feature-card p-6 bg-gray-800 rounded-lg shadow opacity-0">
                         <h3 class="text-xl font-semibold mb-4">Forecast & Alerts</h3>
@@ -58,8 +60,8 @@
                 <h2 class="section-title text-4xl font-bold mb-12 opacity-0">FuelPrice Insights</h2>
                 <div class="grid md:grid-cols-2 gap-8">
                     <div class="feature-card p-6 bg-gray-800 rounded-lg shadow opacity-0">
-                        <p class="text-5xl font-bold text-blue-400 mb-2">+120K</p>
-                        <p class="text-gray-400">Stations Monitored Worldwide</p>
+                        <p class="text-5xl font-bold text-blue-400 mb-2">+1K</p>
+                        <p class="text-gray-400">Stations Monitored</p>
                     </div>
                     <div class="feature-card p-6 bg-gray-800 rounded-lg shadow opacity-0">
                         <p class="text-5xl font-bold text-blue-400 mb-2">98%</p>
@@ -80,17 +82,15 @@
                         </p>
                     </div>
                     <div class="feature-card opacity-0">
-                        <h4 class="text-xl font-semibold">How often is price data updated?</h4>
-                        <p class="text-gray-400 mt-2">Multiple times per day, ensuring near real-time accuracy.</p>
+                        <h4 class="text-xl font-semibold">How does user update the data?</h4>
+                        <p class="text-gray-400 mt-2">Unlimited CSV uploading to our strong database</p>
                     </div>
                 </div>
             </div>
         </section>
     </div>
-    <!-- Libraries -->
-    <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="{{ url_for('static', filename='js/section-reveal.js') }}"></script>
 {% endblock %}

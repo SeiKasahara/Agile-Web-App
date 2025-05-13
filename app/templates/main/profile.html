@@ -3,6 +3,8 @@
 {% from "components/button.html" import button %}
 {% block title %}Profile Settings{% endblock %}
 {% block content %}
+    <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
     <div class="min-h-screen flex items-center justify-center bg-black text-white px-4 py-8">
         <div class="w-full max-w-4xl flex flex-col md:flex-row gap-8">
             <div class="bg-white text-black rounded-md p-6 shadow-lg md:w-1/2 w-full space-y-6">
@@ -32,7 +34,7 @@
                 </div>
                 <p class="text-center md:text-left text-lg font-semibold">{{ user.first_name }} {{ user.last_name }}</p>
                 <div id="verify-section" class="space-y-2">
-                    <label class="block text-sm font-medium">Email Address</label>
+                    <p class="block text-sm font-medium">Email Address</p>
                     <div class="flex items-center space-x-2">
                         <p class="flex-1 text-sm font-bold">{{ user.email }}</p>
                         {% if not user.verified %}
@@ -43,7 +45,7 @@
                     </div>
                     <p id="verify-msg" class="text-xs text-gray-500"></p>
                     <div class="space-y-2">
-                        <label for="change-email" class="block text-sm font-medium mb-1">Change Email Address</label>
+                        <p for="change-email" class="block text-sm font-medium mb-1">Change Email Address</p>
                         <div class="flex items-center space-x-2">
                             <form id="change-email-form"
                                   action="{{ url_for("main.verify_email") }}"
@@ -54,7 +56,7 @@
                                                                 placeholder="Email",
                                                                 value=user.email,
                                                                 required=True,
-                                                                disabled=not user.verified) }}
+                                                                disabled=not user.verified,) }}
                             </form>
                             <div class="w-1/2">
                                 {{ button("Send Code", submit=True, variant="black", id="change-email-btn", disabled=not user.verified) }}
@@ -73,7 +75,7 @@
                     </div>
                 </div>
                 <div class="space-y-2">
-                    <label class="block text-sm font-medium">Change Password</label>
+                    <p class="block text-sm font-medium">Change Password</p>
                     <form id="reset-form"
                           action="{{ url_for("auth.forgot_password") }}"
                           method="post">
@@ -81,6 +83,7 @@
                     </form>
                     {{ button("Send Reset Link", svg_path=None, href=None, submit=False, variant="black", id="reset-btn") }}
                     <p id="reset-msg" class="text-xs text-gray-500 hidden"></p>
+                    {{ button("Go back to Dashboard", href='/dashboard', variant="verify") }}
                 </div>
             </div>
             <div class="bg-white text-black rounded-md p-6 shadow-lg flex-1 md:w-1/2 w-full space-y-6">
@@ -98,11 +101,13 @@
                     </div>
                     <div>
                         <h2 class="text-lg font-semibold">Default Preferences</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                        <div class="grid grid-cols-1 gap-4 mt-2">
                             <select name="default_fuel_type" class="bg-gray-100 rounded-md px-4 py-2">
-                                {% for ft in ["Unleaded","Premium","Diesel","E10"] %}
-                                    <option value="{{ ft }}"
-                                            {% if user.default_fuel_type==ft %}selected{% endif %}>{{ ft }}</option>
+                                {% for ft in fuel_types %}
+                                    <option value="{{ ft.name }}"
+                                            {% if user.default_fuel_type==ft.name %}selected{% endif %}>
+                                        {{ ft.name }}
+                                    </option>
                                 {% endfor %}
                             </select>
                             <select name="default_date_range" class="bg-gray-100 rounded-md px-4 py-2">
@@ -116,42 +121,40 @@
                                     Last 90 days
                                 </option>
                             </select>
-                            <input name="default_location"
-                                   type="text"
-                                   value="{{ user.default_location or '' }}"
-                                   placeholder="Default Location"
-                                   class="bg-gray-100 rounded-md px-4 py-2">
-                        </div>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-semibold">Price Alerts & Notifications</h2>
-                        <div class="flex flex-col md:flex-row md:space-x-4 mt-2">
-                            <input name="alert_threshold"
-                                   type="number"
-                                   step="0.01"
-                                   value="{{ user.alert_threshold or '' }}"
-                                   placeholder="Alert if ≤ $/L"
-                                   class="flex-1 bg-gray-100 rounded-md px-4 py-2 mb-2 md:mb-0">
-                            <select name="alert_frequency" class="bg-gray-100 rounded-md px-4 py-2">
-                                {% for f in ["realtime","daily","weekly"] %}
-                                    <option value="{{ f }}" {% if user.alert_frequency==f %}selected{% endif %}>{{ f|capitalize }}</option>
+                            <select id="default_location"
+                                    name="default_location"
+                                    class="bg-gray-100 rounded-md px-4 py-2">
+                                {% for loc in locations %}
+                                    <option value="{{ loc }}"
+                                            {% if user.default_location == loc %}selected{% endif %}>{{ loc }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">When price crosses threshold, you'll be notified via email.</p>
                     </div>
                     <div>
-                        <h2 class="text-lg font-semibold">Export & Privacy</h2>
-                        <div class="flex items-center space-x-4 mt-2">
-                            <label class="flex items-center space-x-2">
-                                <input type="checkbox"
-                                       name="public_dashboard"
-                                       class="form-checkbox"
-                                       {% if user.public_dashboard %}checked{% endif %}>
-                                <span>Make my dashboard public</span>
-                            </label>
+                        <h2 class="text-lg font-semibold">Share Link Expiry</h2>
+                        <div class="mt-2">
+                            <select name="share_expire_range"
+                                    class="bg-gray-100 text-gray-800 rounded-md px-3 py-2 focus:outline-none">
+                                <option value="1d"
+                                        {% if user.share_expire_range == '1d' %}selected{% endif %}>
+                                    Expire after 1 day
+                                </option>
+                                <option value="7d"
+                                        {% if user.share_expire_range == '7d' %}selected{% endif %}>
+                                    Expire after 7 day
+                                </option>
+                                <option value="30d"
+                                        {% if user.share_expire_range == '30d' %}selected{% endif %}>
+                                    Expire after 30 day
+                                </option>
+                                <option value="never"
+                                        {% if user.share_expire_range == 'never' %}selected{% endif %}>
+                                    Never Expire
+                                </option>
+                            </select>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Public dashboards can be shared via URL.</p>
+                        <p class="text-xs text-gray-500 mt-1">The share link will be not accessible after setting time range</p>
                     </div>
                     <div class="flex justify-end">{{ button("Save Settings", submit=True, variant="black") }}</div>
                     <p id="profile-msg" class="text-sm text-gray-600 text-center mt-2">
@@ -161,6 +164,4 @@
             </div>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
 {% endblock %}

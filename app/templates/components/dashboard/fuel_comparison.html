@@ -1,0 +1,91 @@
+{% macro fuel_comparison(chart_data) %}
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+            <h2 class="text-xl font-bold mb-4">Average Price by Fuel Type</h2>
+            <div class="w-full h-48 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">
+                <canvas id="avgPriceChart" class="w-full h-48"></canvas>
+            </div>
+        </div>
+        <div class="bg-gray-800 rounded-lg p-6 shadow hover:shadow-lg transition">
+            <h2 class="text-xl font-bold mb-4">Price Gap between Types Over Time</h2>
+            <div class="w-full h-48 bg-gray-700 rounded-md flex items-center justify-center text-gray-400">
+                <canvas id="priceGapChart" class="w-full h-48"></canvas>
+            </div>
+        </div>
+    </section>
+    <script>
+            const labels = {{ chart_data.weekly.labels | tojson }};
+            const datasets = {{ chart_data.weekly.datasets | tojson }};
+
+            // Compute average prices
+            const avgLabels = datasets.map(ds => ds.label);
+            const avgData = datasets.map(ds => {
+                const sum = ds.data.reduce((a, b) => a + b, 0);
+                return (sum / ds.data.length).toFixed(2);
+            });
+
+            // Bar chart for averages
+            const ctxBar = document.getElementById('avgPriceChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {labels: avgLabels, datasets: [{label: 'Average Price', data: avgData}]},
+                options: {scales: {y: {beginAtZero: true}}, plugins: {legend: {display: false}}}
+            });
+
+            // Compute price gap (max - min) at each time
+            const gapData = labels.map((_, idx) => {
+                const values = datasets.map(ds => ds.data[idx]);
+                return Math.max(...values) - Math.min(...values);
+            });
+            // Line chart for price gap
+            const ctxLine = document.getElementById('priceGapChart').getContext('2d');
+            new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Price Gap (Max - Min)',
+                        data: gapData,
+                        borderColor: '#f87171',
+                        backgroundColor: 'rgba(248,113,113,0.2)',
+                        fill: true,
+                        pointRadius: 3,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Week',
+                                color: '#ccc'
+                            },
+                            ticks: { color: '#ccc' }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Price Gap ($/L)',
+                                color: '#ccc'
+                            },
+                            ticks: { color: '#ccc' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: '#ccc' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Gap: $${context.parsed.y.toFixed(2)}`
+                            }
+                        }
+                    }
+                }
+            });
+    </script>
+{% endmacro %}
