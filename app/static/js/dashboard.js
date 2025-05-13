@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (!form) return;
   form
     .querySelectorAll(
-      'input[name="date"], select[name="fuel_type"], select[name="location"]'
+      `input[name="date"], select[name="fuel_type"], select[name="location"]`
     )
     .forEach(function (el) {
       el.addEventListener("change", function () {
