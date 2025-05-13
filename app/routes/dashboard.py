@@ -258,3 +258,100 @@ def get_forecast():
     return jsonify(dates=dates,
                    historical=historical,
                    forecast=forecast)
+
+def _gather_dashboard_data(user_id,
+                           fuel_type: str = "All Fuel Types",
+                           location: str  = "All Locations",
+                           filter_date: str = None):
+    last_batch = (
+        UploadBatch.query
+        .filter_by(user_id=user_id)
+        .order_by(UploadBatch.uploaded_at.desc())
+        .first()
+    )
+    empty_chart = {"labels": [], "datasets": []}
+    chart_data = {"daily": empty_chart, "weekly": empty_chart, "monthly": empty_chart}
+    metrics = {
+        "avg_price":   "$0.00",
+        "volatility":  "0%",
+        "cheapest":    "$0.00",
+        "expensive":   "$0.00"
+    }
+    if not last_batch:
+        return chart_data, metrics
+ 
+    qry = (
+        db.session.query(
+            PriceRecord.date.label('publish_date'),
+            FuelType.name.label('fuel_type'),
+            PriceRecord.price.label('price'),
+            Station.suburb.label('location')
+        )
+        .join(FuelType, PriceRecord.fuel_type_id == FuelType.id)
+        .join(Station, PriceRecord.station_id == Station.id)
+        .filter(PriceRecord.batch_id == last_batch.id)
+    )
+    
+    sql_str = str(qry.statement.compile(compile_kwargs={"literal_binds": True}))
+    df = pd.read_sql_query(sql=sql_str, con=db.engine, parse_dates=['publish_date'])
+ 
+    df['date_str']  = df['publish_date'].dt.strftime('%Y-%m-%d')
+    df["date_str"]  = df["publish_date"].dt.strftime("%Y-%m-%d")
+    df["week_str"]  = "Week " + df["publish_date"].dt.isocalendar().week.astype(str)
+    df["month_str"] = df["publish_date"].dt.strftime("%Y-%m")
+
+    df_f = df.copy()
+    if fuel_type and fuel_type != "All Fuel Types":
+        df_f = df_f[df_f["fuel_type"] == fuel_type]
+    if location and location != "All Locations":
+        df_f = df_f[df_f["location"] == location]
+    if filter_date:
+        df_f = df_f[df_f["date_str"] == filter_date]
+
+    MAX_POINTS = 1000
+    if len(df_f) > MAX_POINTS:
+        types = df_f["fuel_type"].unique().tolist()
+        per = max(1, MAX_POINTS // len(types))
+        df_f = (
+            df_f.groupby("fuel_type", group_keys=False)
+                .apply(lambda g: g.sample(n=min(len(g), per), random_state=42))
+        )
+        if len(df_f) > MAX_POINTS:
+            df_f = df_f.sample(n=MAX_POINTS, random_state=42)
+
+    def build_chart(df_grp, label_col):
+        labels = sorted(df_grp[label_col].unique().tolist())
+        datasets = []
+        for ft in df_grp["fuel_type"].unique():
+            sub = df_grp[df_grp["fuel_type"] == ft]
+            data = [
+                round(sub[sub[label_col]==lbl]["price"].mean(), 2)
+                    if not sub[sub[label_col]==lbl].empty else None
+                for lbl in labels
+            ]
+            datasets.append({
+                "label": ft,
+                "data": data,
+                "tension": 0.1
+            })
+        return {"labels": labels, "datasets": datasets}
+
+    chart_data = {
+        "daily":   build_chart(df_f, "date_str"),
+        "weekly":  build_chart(df_f, "week_str"),
+        "monthly": build_chart(df_f, "month_str"),
+    }
+
+    if not df_f.empty:
+        avg_price  = df_f["price"].mean()
+        vol        = df_f["price"].std() * 100
+        min_price  = df_f["price"].min()
+        max_price  = df_f["price"].max()
+        metrics = {
+            "avg_price":  f"${avg_price:.2f}",
+            "volatility": f"{vol:.2f}%",
+            "cheapest":   f"${min_price:.2f}",
+            "expensive":  f"${max_price:.2f}"
+        }
+
+    return chart_data, metrics

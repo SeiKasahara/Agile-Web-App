@@ -91,19 +91,12 @@ class PriceRecord(db.Model):
     station       = db.relationship('Station', back_populates='prices')
     fuel_type     = db.relationship('FuelType', back_populates='prices')
 
-class DataShare(db.Model):
-    __tablename__ = 'data_shares'
-    id           = db.Column(db.Integer, primary_key=True)
-    owner_id     = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    batch_id     = db.Column(db.Integer, db.ForeignKey('upload_batches.id'), nullable=False)
-    shared_to_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
-
-    owner        = db.relationship('User', foreign_keys=[owner_id], backref='shares_made')
-    batch        = db.relationship('UploadBatch', backref='shares')
-    shared_to    = db.relationship('User', foreign_keys=[shared_to_id], backref='shares_received')
-
-    __table_args__ = (
-        db.UniqueConstraint('owner_id','batch_id','shared_to_id',
-                            name='uq_share_owner_batch_user'),
-    )
+class SharedReport(db.Model):
+    id                   = db.Column(db.Integer, primary_key=True)
+    user_id              = db.Column(db.Integer, db.ForeignKey('users.id'))
+    fuel_type            = db.Column(db.String(50))
+    location             = db.Column(db.String(50))
+    date                 = db.Column(db.String(10))
+    forecast_config      = db.Column(db.Text)
+    heatmap_points_json  = db.Column(db.Text)
+    created_at           = db.Column(db.DateTime, default=datetime.utcnow)

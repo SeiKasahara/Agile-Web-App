@@ -19,8 +19,7 @@
                 <div id="fuel-icon-container" class="w-48 h-48 flex items-center"></div>
                 <nav class="flex flex-col gap-6 mt-10">
                     {{ button("Dashboard", href=url_for('dashboard.dashboard_home') , variant="sidebar") }}
-                    {{ button("Analytics", href="#", variant="sidebar") }}
-                    {{ button("Settings", href="#", variant="sidebar") }}
+                    {{ button("Share", id="share-dashboard-btn" , variant="sidebar") }}
                 </nav>
             </div>
             <!-- User profile shortcut -->
@@ -117,7 +116,7 @@
                 <!-- Predictive Analytics -->
                 {{ predictive_analytics() }}
             </div>
-            <!-- Data uploading -->>
+            <!-- Data uploading -->
             <div id="upload-modal"
                  class="hidden fixed inset-0 z-20 w-full items-center justify-center bg-black bg-opacity-50">
                 <div class="bg-white text-black w-full max-w-4xl rounded-md p-6 space-y-6 shadow-lg relative">
@@ -167,6 +166,56 @@
                 </div>
             </div>
             {{ loading(id="uploading", variant="white") }}
+            <!-- Share Modal -->
+            <div id="share-modal"
+                 class="fixed inset-0 hidden bg-black bg-opacity-50 z-50 items-center justify-center">
+                <div class="bg-white rounded-lg text-black p-6 w-full max-w-sm mx-4">
+                    <h2 class="text-xl font-bold mb-4">Share Your Dashboard</h2>
+                    <input id="share-url-input"
+                           type="text"
+                           readonly
+                           class="w-full px-3 py-2 mb-4 border rounded text-sm font-mono" />
+                    <div class="flex justify-between mb-4 space-x-2">
+                        <a id="twitter-share"
+                           class="flex-1 flex items-center justify-center space-x-2 bg-black hover:bg-gray-600 text-white px-3 py-2 rounded">
+                            <img src="{{ url_for('static',filename='assets/x.svg') }}"
+                                 class="w-5 h-5"
+                                 height="1"
+                                 width="1"
+                                 alt="">
+                            <span>Twitter</span>
+                        </a>
+                        <a id="facebook-share"
+                           class="flex-1 flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-black px-3 py-2 rounded">
+                            <img src="{{ url_for('static',filename='assets/facebook.svg') }}"
+                                 class="w-5 h-5"
+                                 height="1"
+                                 width="1"
+                                 alt="">
+                            <span>Facebook</span>
+                        </a>
+                        <a id="linkedin-share"
+                           class="flex-1 flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-black px-3 py-2 rounded">
+                            <img src="{{ url_for('static',filename='assets/linkedin.svg') }}"
+                                 class="w-5 h-5"
+                                 height="1"
+                                 width="1"
+                                 alt="">
+                            <span>LinkedIn</span>
+                        </a>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button id="copy-share-btn"
+                                class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded text-sm">
+                            Copy
+                        </button>
+                        <button id="close-share-btn"
+                                class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded text-sm">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
         <!-- Main Panel End -->
     </div>

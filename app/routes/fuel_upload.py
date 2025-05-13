@@ -153,7 +153,6 @@ def download_template():
         'PRODUCT_DESCRIPTION','PRODUCT_PRICE','ADDRESS',
         'LOCATION','POSTCODE','AREA_DESCRIPTION','REGION_DESCRIPTION'
     ]
-    # 空 DataFrame 只写列头
     df = pd.DataFrame(columns=cols)
     buffer = io.StringIO()
     df.to_csv(buffer, index=False)

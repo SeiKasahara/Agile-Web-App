@@ -1,45 +1,78 @@
 # app/routes/share.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, abort, current_app, json, jsonify, render_template, request, url_for
 from flask_login import login_required, current_user
-from app.models import UploadBatch, User, DataShare
+from sqlalchemy import func
+from app.models import FuelType, PriceRecord, SharedReport, Station
 from app import db
+from app.routes.dashboard import _gather_dashboard_data
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 share_bp = Blueprint('share', __name__, url_prefix='/share')
 
-@share_bp.route('/', methods=['GET', 'POST'])
+def make_share_token(share_id):
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    payload = {
+        'share_id':   share_id,
+    }
+    return s.dumps(payload)
+
+@share_bp.route('/create', methods=['POST'])
 @login_required
-def share_data():
-    batches = (UploadBatch.query
-               .filter_by(user_id=current_user.id)
-               .order_by(UploadBatch.uploaded_at.desc())
-               .all())
-    users = User.query.filter(User.id != current_user.id).all()
+def create_share():
+    data = request.get_json()
+    
+    share = SharedReport(
+      user_id             = current_user.id,
+      fuel_type           = data['fuel'],
+      location            = data['loc'],
+      date                = data['date'],
+      forecast_config     = json.dumps(data['forecastConfig']),
+      heatmap_points_json = json.dumps(data['heatmapPoints'])
+    )
+    
+    db.session.add(share)
+    db.session.commit()
 
-    if request.method == 'POST':
-        batch_id     = int(request.form['batch_id'])
-        selected_ids = request.form.getlist('shared_to')
+    token = make_share_token(share_id=share.id)
+    url = url_for('share.report', token=token, _external=True)
+    return jsonify(url=url)
 
-        DataShare.query.filter_by(owner_id=current_user.id, batch_id=batch_id).delete()
+@share_bp.route('/report')
+@login_required
+def report():
+    token = request.args.get('token')
+    if not token:
+        abort(400)
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        data = s.loads(token, max_age=3600)
+    except SignatureExpired:
+        return "Link expired", 403
+    except BadSignature:
+        return "Invalid link", 403
+    
+    share = SharedReport.query.get(data['share_id'])
+    if not share:
+        abort(404)
 
-        for uid in selected_ids:
-            share = DataShare(
-                owner_id     = current_user.id,
-                batch_id     = batch_id,
-                shared_to_id = int(uid)
-            )
-            db.session.add(share)
+    chart_data, metrics = _gather_dashboard_data(
+        user_id=current_user.id,
+        fuel_type=share.fuel_type,
+        location=share.location,
+        filter_date=share.date
+    )
 
-        db.session.commit()
-        flash("Sharing settings updated", "success")
-        return redirect(url_for('share.share_data'))
-
-    shares_map = {}
-    for b in batches:
-        shares_map[b.id] = [ ds.shared_to_id for ds in b.shares ]
+    forecast_config = json.loads(share.forecast_config)
+    heatmap_points  = json.loads(share.heatmap_points_json)
 
     return render_template(
-        'main/share_data.html',
-        batches=batches,
-        users=users,
-        shares_map=shares_map
+        'share/report.html',
+        user                = current_user,
+        chart_data    = chart_data,
+        metrics       = metrics,
+        fuel_type           = share.fuel_type,
+        location            = share.location,
+        date                = share.date,
+        forecast_config     = forecast_config,
+        heatmap_points      = heatmap_points
     )
