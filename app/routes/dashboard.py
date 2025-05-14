@@ -29,11 +29,18 @@ def dashboard_home():
     )
     if not last_batch:
         empty = {'labels': [], 'datasets': []}
+        default_metrics = {
+            'avg_price':   "$0.00",
+            'volatility':  "0.00%",
+            'cheapest':    "$0.00",
+            'expensive':   "$0.00"
+        }
         return render_template('main/dashboard.html',
                                user=current_user,
                                chart_data={'daily': empty, 'weekly': empty, 'monthly': empty},
                                fuel_types=['All Fuel Types'],
-                               locations=['All Locations'])
+                               locations=['All Locations'],
+                               metrics=default_metrics)
 
     # —— 2. From DB to dataframe —— 
     qry = (
