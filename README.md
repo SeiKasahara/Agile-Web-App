@@ -75,6 +75,32 @@ Agile-Web-App/
 - `.vscode/`: VS Code workspace settings
 - `.venv/`: Python virtual environment
 
+## Security Features
+
+### CSRF Protection
+
+The application uses Flask-WTF for CSRF (Cross-Site Request Forgery) protection:
+
+- All forms include a CSRF token via the `{{ csrf_field() }}` template macro
+- AJAX requests automatically include the CSRF token in the header
+- Protection is enabled globally in `app/__init__.py`
+- Custom error handlers gracefully handle CSRF validation errors
+
+To use CSRF protection in forms:
+
+1. Include the CSRF token in HTML forms:
+   ```html
+   <form method="post">
+     {{ csrf_field() }}
+     <!-- Form fields -->
+   </form>
+   ```
+
+2. For AJAX requests, the token is automatically included from the metadata:
+   ```html
+   <meta name="csrf-token" content="{{ csrf_token() }}">
+   ```
+
 ## Setup and Installation
 
 ### Prerequisites

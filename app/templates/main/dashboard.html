@@ -6,247 +6,223 @@
 {% from "components/dashboard/fuel_comparison.html" import fuel_comparison %}
 {% from "components/dashboard/predictive_analytics.html" import predictive_analytics %}
 {% from "components/loading.html" import loading %}
+{% from "components/csrf_token.html" import csrf_field %}
 {% set sel_fuel = request.args.get('fuel_type') or user.default_fuel_type or 'All Fuel Types' %}
-{% set sel_loc = request.args.get('location')  or user.default_location  or 'All Locations' %}
+{% set sel_loc = request.args.get('location') or user.default_location or 'All Locations' %}
 {% block title %}Fuel Dashboard{% endblock %}
 {% block content %}
-    <script src="{{ url_for('static', filename='js/dashboard-sidebar.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
-    <div id="dashboard-layout"
-         class="min-h-screen text-white flex flex-col md:flex-row">
-        <!-- Sidebar -->
-        <aside id="sidebar"
-               class="fixed inset-y-0 left-0 z-40 w-64 bg-black transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between p-6">
-            <div class="space-y-6">
-                <a href="/">
-                    <div class="text-2xl font-bold">FuelPrice Analysis WebApp</div>
-                </a>
-                <div id="fuel-icon-container" class="w-48 h-48 flex items-center"></div>
-                <nav class="flex flex-col gap-6 mt-10">
-                    {{ button("Dashboard", href=url_for('dashboard.dashboard_home') , variant="sidebar") }}
-                    {{ button("Share", id="share-dashboard-btn" , variant="sidebar") }}
-                </nav>
-            </div>
-            <!-- User profile shortcut -->
-            <div class="mt-6 pt-6 border-t border-gray-700">
-                <a href="/profile"
-                   class="flex items-center space-x-3 hover:bg-gray-700 px-3 py-2 rounded-md transition duration-200">
-                    <div class="w-10 h-10 rounded-full overflow-hidden">
-                        <img id="avatar"
-                             src="{% if user.avatar %}{{ url_for('static', filename='avatars/'~user.avatar) }}{% endif %}"
-                             alt="Avatar"
-                             height="1"
-                             width="1"
-                             class="flex w-full rounded-full overflow-hidden h-full {% if not user.avatar %}hidden{% endif %}">
-                        <span class="flex  bg-gray-600 items-center justify-center h-full w-full text-white font-bold text-sm uppercase">
-                            {{ current_user.first_name[0] ~ current_user.last_name[0] }}
-                        </span>
-                    </div>
-                    <div>
-                        <p class="text-sm font-semibold">{{ current_user.first_name }} {{ current_user.last_name }}</p>
-                        <p class="text-xs text-gray-400">View Profile</p>
-                    </div>
-                </a>
-            </div>
-            <div>{{ button("Logout", href=url_for('auth.logout') , variant="logout") }}</div>
-        </aside>
-        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-30"></div>
-        <!-- Main Panel -->
-        <div class="flex-1 flex flex-col relative">
-            <!-- Topbar -->
-            <div class="flex items-center justify-between p-4 md:px-6 md:py-4 bg-black shadow-md">
-                <!-- Mobile: menu toggle -->
-                <button id="menu-toggle" class="text-white focus:outline-none">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
-                <!-- Title -->
-                <h1 class="text-lg sm:text-xl md:text-2xl font-bold flex-1 text-center">Fuel Price Dashboard</h1>
-                <!-- Desktop Filters -->
-                <div class="hidden md:flex flex-wrap items-center gap-4 md:justify-end">
-                    <input id="date_select"
-                           type="date"
-                           name="date"
-                           value="{{ request.args.get('date', '') }}"
-                           class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none" />
-                    <select id="fuel_type_select"
-                            name="fuel_type"
-                            class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
-                        <option value="All Fuel Types"
-                                {% if sel_fuel == 'All Fuel Types' %}selected{% endif %}>All Fuel Types</option>
-                        {% for ft in fuel_types %}
-                            <option value="{{ ft.name }}" {% if sel_fuel == ft.name %}selected{% endif %}>{{ ft.name }}</option>
-                        {% endfor %}
-                    </select>
-                    <select id="location_select"
-                            name="location"
-                            class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
-                        <option value="All Locations"
-                                {% if sel_loc == 'All Locations' %}selected{% endif %}>All Locations</option>
-                        {% for loc in locations if loc != 'All Locations' %}
-                            <option value="{{ loc }}" {% if sel_loc == loc %}selected{% endif %}>{{ loc }}</option>
-                        {% endfor %}
-                    </select>
-                    <div>{{ button("Upload Data", href="javascript:void(0);", variant="default", id="open-upload-modal") }}</div>
+<script src="{{ url_for('static', filename='js/dashboard-sidebar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/fuel-outline-animation.js') }}"></script>
+<script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
+<div id="dashboard-layout" class="min-h-screen text-white flex flex-col md:flex-row">
+    <!-- Sidebar -->
+    <aside id="sidebar"
+        class="fixed inset-y-0 left-0 z-40 w-64 bg-black transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between p-6">
+        <div class="space-y-6">
+            <a href="/">
+                <div class="text-2xl font-bold">FuelPrice Analysis WebApp</div>
+            </a>
+            <div id="fuel-icon-container" class="w-48 h-48 flex items-center"></div>
+            <nav class="flex flex-col gap-6 mt-10">
+                {{ button("Dashboard", href=url_for('dashboard.dashboard_home') , variant="sidebar") }}
+                {{ button("Share", id="share-dashboard-btn" , variant="sidebar") }}
+            </nav>
+        </div>
+        <!-- User profile shortcut -->
+        <div class="mt-6 pt-6 border-t border-gray-700">
+            <a href="/profile"
+                class="flex items-center space-x-3 hover:bg-gray-700 px-3 py-2 rounded-md transition duration-200">
+                <div class="w-10 h-10 rounded-full overflow-hidden">
+                    <img id="avatar"
+                        src="{% if user.avatar %}{{ url_for('static', filename='avatars/'~user.avatar) }}{% endif %}"
+                        alt="Avatar" height="1" width="1"
+                        class="flex w-full rounded-full overflow-hidden h-full {% if not user.avatar %}hidden{% endif %}">
+                    <span
+                        class="flex  bg-gray-600 items-center justify-center h-full w-full text-white font-bold text-sm uppercase">
+                        {{ current_user.first_name[0] ~ current_user.last_name[0] }}
+                    </span>
                 </div>
-            </div>
-            <!-- Filters (mobile) -->
-            <form id="filter-form"
-                  class="md:hidden flex flex-wrap gap-4 items-center p-4 bg-gray-800"
-                  method="get"
-                  action="{{ url_for("dashboard.dashboard_home") }}">
-                <input id="date_select"
-                       type="date"
-                       name="date"
-                       value="{{ request.args.get('date', '') }}"
-                       class="bg-gray-700 text-white rounded-md px-3 py-2 focus:outline-none" />
-                <select id="fuel_type_select"
-                        name="fuel_type"
-                        class="bg-gray-700 text-white rounded-md px-3 py-2 focus:outline-none">
-                    <option value="All Fuel Types"
-                            {% if sel_fuel == 'All Fuel Types' %}selected{% endif %}>All Fuel Types</option>
+                <div>
+                    <p class="text-sm font-semibold">{{ current_user.first_name }} {{ current_user.last_name }}</p>
+                    <p class="text-xs text-gray-400">View Profile</p>
+                </div>
+            </a>
+        </div>
+        <div>{{ button("Logout", href=url_for('auth.logout') , variant="logout") }}</div>
+    </aside>
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-30"></div>
+    <!-- Main Panel -->
+    <div class="flex-1 flex flex-col relative">
+        <!-- Topbar -->
+        <div class="flex items-center justify-between p-4 md:px-6 md:py-4 bg-black shadow-md">
+            <!-- Mobile: menu toggle -->
+            <button id="menu-toggle" class="text-white focus:outline-none">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+            <!-- Title -->
+            <h1 class="text-lg sm:text-xl md:text-2xl font-bold flex-1 text-center">Fuel Price Dashboard</h1>
+            <!-- Desktop Filters -->
+            <div class="hidden md:flex flex-wrap items-center gap-4 md:justify-end">
+                <input id="date_select" type="date" name="date" value="{{ request.args.get('date', '') }}"
+                    class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none" />
+                <select id="fuel_type_select" name="fuel_type"
+                    class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
+                    <option value="All Fuel Types" {% if sel_fuel=='All Fuel Types' %}selected{% endif %}>All Fuel Types
+                    </option>
                     {% for ft in fuel_types %}
-                        <option value="{{ ft.name }}" {% if sel_fuel == ft.name %}selected{% endif %}>{{ ft.name }}</option>
+                    <option value="{{ ft.name }}" {% if sel_fuel==ft.name %}selected{% endif %}>{{ ft.name }}</option>
                     {% endfor %}
                 </select>
-                <select id="location_select"
-                        name="location"
-                        class="bg-gray-700 text-white rounded-md px-3 py-2 focus:outline-none">
-                    <option value="All Locations"
-                            {% if sel_loc == 'All Locations' %}selected{% endif %}>All Locations</option>
+                <select id="location_select" name="location"
+                    class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none">
+                    <option value="All Locations" {% if sel_loc=='All Locations' %}selected{% endif %}>All Locations
+                    </option>
                     {% for loc in locations if loc != 'All Locations' %}
-                        <option value="{{ loc }}" {% if sel_loc == loc %}selected{% endif %}>{{ loc }}</option>
+                    <option value="{{ loc }}" {% if sel_loc==loc %}selected{% endif %}>{{ loc }}</option>
                     {% endfor %}
                 </select>
-                <div>{{ button("Upload Data", href="javascript:void(0);", variant="default", id="open-upload-modal-mobile") }}</div>
-            </form>
-            <!-- Dashboard Content -->
-            <div class="p-6 flex flex-col gap-12 overflow-y-auto">
-                <!-- Key Metrics Summary Cards -->
-                <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                    {{ dashboard_card('Avg Price',   metrics.avg_price,   'blue') }}
-                    {{ dashboard_card('Volatility',  metrics.volatility,  'yellow') }}
-                    {{ dashboard_card('Cheapest',    metrics.cheapest,    'green') }}
-                    {{ dashboard_card('Expensive',   metrics.expensive,   'red') }}
-                </section>
-                <!-- Time-Based Trends -->
-                {{ time_trends(chart_data) }}
-                <!-- Location Heatmap -->
-                {{ location_heatmap() }}
-                <!-- Fuel Type Comparison -->
-                {{ fuel_comparison(chart_data) }}
-                <!-- Predictive Analytics -->
-                {{ predictive_analytics() }}
-            </div>
-            <!-- Data uploading -->
-            <div id="upload-modal"
-                 class="hidden fixed inset-0 z-20 items-center justify-center bg-black bg-opacity-50">
-                <div class="bg-white text-black w-full max-w-4xl rounded-md p-6 space-y-6 shadow-lg relative">
-                    <button id="close-upload-modal"
-                            class="absolute top-3 right-3 text-gray-600 hover:text-gray-800">✕</button>
-                    <h2 class="text-2xl font-bold text-center">Upload Your CSV</h2>
-                    <form id="upload-form"
-                          action="{{ url_for("fuel_upload.upload_file") }}"
-                          method="post"
-                          enctype="multipart/form-data"
-                          class="space-y-4">
-                        <input name="file"
-                               id="upload-csv"
-                               type="file"
-                               accept=".csv"
-                               required
-                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                        
-                        <p class="text-sm text-gray-600 mb-2">
-                                You can download historical fuel data from <a href="https://www.fuelwatch.wa.gov.au/retail/historic" target="_blank" class="text-blue-600 hover:underline">FuelWatch WA</a>.
-                                The April 2025 data below is an example from this source.
-                        </p>
-                        <div class="flex space-x-2">
-                            <div class="w-1/2">
-                                {{ button("Download Template", variant="default", href = url_for('fuel_upload.download_template')) }}
-                            </div>
-                            <div class="w-1/2">
-                                {{ button("Download April 2025 Data", variant="default", href = url_for('fuel_upload.download_demo_data')) }}
-                            </div>
-                        </div>
-                        {{ button("Upload & Preview", id="upload-btn", variant="black", submit=True) }}
-                    </form>
-                    {% if table %}
-                        <div class="pt-4">
-                            <h3 class="text-xl font-semibold mb-2">Data Preview</h3>
-                            <div class="relative w-full border rounded">
-                                <div class="overflow-x-auto w-full block max-h-64">
-                                    <table class="min-w-full table-autosm">
-                                        {{ table_header|safe }}
-                                        <tbody>
-                                            {% for row in sample %}
-                                                <tr>
-                                                    {% for val in row.values() %}<td class="border px-2 py-1 whitespace-nowrap truncate">{{ val }}</td>{% endfor %}
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                    {% if stats %}
-                        <div class="pt-4">
-                            <h3 class="text-xl font-semibold mb-2">Basic Statistics</h3>
-                            <div class="overflow-x-auto max-h-64">{{ stats|safe }}</div>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            {{ loading(id="uploading", variant="white") }}
-            <!-- Share Modal -->
-            <div id="share-modal"
-                 class="fixed inset-0 hidden bg-black bg-opacity-50 z-50 items-center justify-center">
-                <div class="bg-white rounded-lg text-black p-6 w-full max-w-sm mx-4">
-                    <h2 class="text-xl font-bold mb-4">Share Your Dashboard</h2>
-                    <input id="share-url-input"
-                           type="text"
-                           readonly
-                           class="w-full px-3 py-2 mb-4 border rounded text-sm font-mono" />
-                    <div class="flex justify-between mb-4 space-x-2">
-                        <a id="twitter-share"
-                           class="flex-1 flex items-center justify-center space-x-2 bg-black hover:bg-gray-600 text-white px-3 py-2 rounded">
-                            <img src="{{ url_for('static',filename='assets/x.svg') }}"
-                                 class="w-5 h-5"
-                                 height="1"
-                                 width="1"
-                                 alt="">
-                            <span>Twitter</span>
-                        </a>
-                        <a id="facebook-share"
-                           class="flex-1 flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-black px-3 py-2 rounded">
-                            <img src="{{ url_for('static',filename='assets/facebook.svg') }}"
-                                 class="w-5 h-5"
-                                 height="1"
-                                 width="1"
-                                 alt="">
-                            <span>Facebook</span>
-                        </a>
-                        <a id="linkedin-share"
-                           class="flex-1 flex items-center justify-center space-x-2 bg-blue-300 hover:bg-blue-400 text-black px-3 py-2 rounded">
-                            <img src="{{ url_for('static',filename='assets/linkedin.svg') }}"
-                                 class="w-5 h-5"
-                                 height="1"
-                                 width="1"
-                                 alt="">
-                            <span>LinkedIn</span>
-                        </a>
-                    </div>
-                    <div class="flex justify-end space-x-2">
-                        {{ button("Copy", id="copy-share-btn", variant="black") }}
-                        {{ button("Close", id="close-share-btn", variant="default") }}
-                    </div>
+                <div>{{ button("Upload Data", href="javascript:void(0);", variant="default", id="open-upload-modal") }}
                 </div>
             </div>
         </div>
-        <!-- Main Panel End -->
+        <!-- Filters (mobile) -->
+        <form id="filter-form" class="md:hidden flex flex-wrap gap-4 items-center p-4 bg-gray-800">
+            {{ csrf_field() }}
+            <input id="date_select" type="date" name="date" value="{{ request.args.get('date', '') }}"
+                class="bg-gray-700 text-white rounded-md px-3 py-2 focus:outline-none" />
+            <select id="fuel_type_select" name="fuel_type"
+                class="bg-gray-700 text-white rounded-md px-3 py-2 focus:outline-none">
+                <option value="All Fuel Types" {% if sel_fuel=='All Fuel Types' %}selected{% endif %}>All Fuel Types
+                </option>
+                {% for ft in fuel_types %}
+                <option value="{{ ft.name }}" {% if sel_fuel==ft.name %}selected{% endif %}>{{ ft.name }}</option>
+                {% endfor %}
+            </select>
+            <select id="location_select" name="location"
+                class="bg-gray-700 text-white rounded-md px-3 py-2 focus:outline-none">
+                <option value="All Locations" {% if sel_loc=='All Locations' %}selected{% endif %}>All Locations
+                </option>
+                {% for loc in locations if loc != 'All Locations' %}
+                <option value="{{ loc }}" {% if sel_loc==loc %}selected{% endif %}>{{ loc }}</option>
+                {% endfor %}
+            </select>
+            <div>{{ button("Upload Data", href="javascript:void(0);", variant="default", id="open-upload-modal-mobile")
+                }}</div>
+        </form>
+        <!-- Dashboard Content -->
+        <div class="p-6 flex flex-col gap-12 overflow-y-auto">
+            <!-- Key Metrics Summary Cards -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                {{ dashboard_card('Avg Price', metrics.avg_price, 'blue') }}
+                {{ dashboard_card('Volatility', metrics.volatility, 'yellow') }}
+                {{ dashboard_card('Cheapest', metrics.cheapest, 'green') }}
+                {{ dashboard_card('Expensive', metrics.expensive, 'red') }}
+            </section>
+            <!-- Time-Based Trends -->
+            {{ time_trends(chart_data) }}
+            <!-- Location Heatmap -->
+            {{ location_heatmap() }}
+            <!-- Fuel Type Comparison -->
+            {{ fuel_comparison(chart_data) }}
+            <!-- Predictive Analytics -->
+            {{ predictive_analytics() }}
+        </div>
+        <!-- Data uploading -->
+        <div id="upload-modal" class="hidden fixed inset-0 z-20 items-center justify-center bg-black bg-opacity-50">
+            <div class="bg-white text-black w-full max-w-4xl rounded-md p-6 space-y-6 shadow-lg relative">
+                <button id="close-upload-modal"
+                    class="absolute top-3 right-3 text-gray-600 hover:text-gray-800">✕</button>
+                <h2 class="text-2xl font-bold text-center">Upload Your CSV</h2>
+                <form id="upload-form" action="{{ url_for('fuel_upload.upload_file') }}" method="post"
+                    enctype="multipart/form-data" class="space-y-4">
+                    {{ csrf_field() }}
+                    <input name="file" id="upload-csv" type="file" accept=".csv" required
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+
+                    <p class="text-sm text-gray-600 mb-2">
+                        You can download historical fuel data from <a
+                            href="https://www.fuelwatch.wa.gov.au/retail/historic" target="_blank"
+                            class="text-blue-600 hover:underline">FuelWatch WA</a>.
+                        The April 2025 data below is an example from this source.
+                    </p>
+                    <div class="flex space-x-2">
+                        <div class="w-1/2">
+                            {{ button("Download Template", variant="default", href =
+                            url_for('fuel_upload.download_template')) }}
+                        </div>
+                        <div class="w-1/2">
+                            {{ button("Download April 2025 Data", variant="default", href =
+                            url_for('fuel_upload.download_demo_data')) }}
+                        </div>
+                    </div>
+                    {{ button("Upload & Preview", id="upload-btn", variant="black", submit=True) }}
+                </form>
+                {% if table %}
+                <div class="pt-4">
+                    <h3 class="text-xl font-semibold mb-2">Data Preview</h3>
+                    <div class="relative w-full border rounded">
+                        <div class="overflow-x-auto w-full block max-h-64">
+                            <table class="min-w-full table-autosm">
+                                {{ table_header|safe }}
+                                <tbody>
+                                    {% for row in sample %}
+                                    <tr>
+                                        {% for val in row.values() %}<td
+                                            class="border px-2 py-1 whitespace-nowrap truncate">{{ val }}</td>{% endfor
+                                        %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% if stats %}
+                <div class="pt-4">
+                    <h3 class="text-xl font-semibold mb-2">Basic Statistics</h3>
+                    <div class="overflow-x-auto max-h-64">{{ stats|safe }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {{ loading(id="uploading", variant="white") }}
+        <!-- Share Modal -->
+        <div id="share-modal" class="fixed inset-0 hidden bg-black bg-opacity-50 z-50 items-center justify-center">
+            <div class="bg-white rounded-lg text-black p-6 w-full max-w-sm mx-4">
+                <h2 class="text-xl font-bold mb-4">Share Your Dashboard</h2>
+                <input id="share-url-input" type="text" readonly
+                    class="w-full px-3 py-2 mb-4 border rounded text-sm font-mono" />
+                <div class="flex justify-between mb-4 space-x-2">
+                    <a id="twitter-share"
+                        class="flex-1 flex items-center justify-center space-x-2 bg-black hover:bg-gray-600 text-white px-3 py-2 rounded">
+                        <img src="{{ url_for('static',filename='assets/x.svg') }}" class="w-5 h-5" height="1" width="1"
+                            alt="">
+                        <span>Twitter</span>
+                    </a>
+                    <a id="facebook-share"
+                        class="flex-1 flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-black px-3 py-2 rounded">
+                        <img src="{{ url_for('static',filename='assets/facebook.svg') }}" class="w-5 h-5" height="1"
+                            width="1" alt="">
+                        <span>Facebook</span>
+                    </a>
+                    <a id="linkedin-share"
+                        class="flex-1 flex items-center justify-center space-x-2 bg-blue-300 hover:bg-blue-400 text-black px-3 py-2 rounded">
+                        <img src="{{ url_for('static',filename='assets/linkedin.svg') }}" class="w-5 h-5" height="1"
+                            width="1" alt="">
+                        <span>LinkedIn</span>
+                    </a>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    {{ button("Copy", id="copy-share-btn", variant="black") }}
+                    {{ button("Close", id="close-share-btn", variant="default") }}
+                </div>
+            </div>
+        </div>
     </div>
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <!-- Main Panel End -->
+</div>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
