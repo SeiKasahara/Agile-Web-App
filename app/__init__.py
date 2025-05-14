@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 from app.models import db, User
 from app.routes.main import main
 
@@ -9,10 +10,12 @@ from app.routes.auth import auth_bp, oauth
 from app.routes.fuel_upload import fuel_upload_bp
 
 from app.utils.mail import mail
+from app.utils.error_handlers import register_error_handlers
 from app.routes.dashboard import dashboard_bp
 from app.routes.share import share_bp
 
 migrate = Migrate()
+csrf = CSRFProtect()
 
 def create_app():
     app = Flask(__name__)
@@ -23,6 +26,9 @@ def create_app():
         app.config.from_object('config.DevelopmentConfig')
         print("loading the development config")
 
+    # Initialize CSRF protection
+    csrf.init_app(app)
+    
     # Initialize the oauth
     oauth.init_app(app)
     # Initialize the mail sys
@@ -32,6 +38,8 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     
+    # Register error handlers
+    register_error_handlers(app)
 
     # Initialize Login Manager
     login_manager = LoginManager()

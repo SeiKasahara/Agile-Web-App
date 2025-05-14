@@ -1,167 +1,146 @@
 {% extends "base.html" %}
 {% from "components/input_field.html" import input_field %}
 {% from "components/button.html" import button %}
+{% from "components/csrf_token.html" import csrf_field %}
 {% block title %}Profile Settings{% endblock %}
 {% block content %}
-    <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
-    <div class="min-h-screen flex items-center justify-center bg-black text-white px-4 py-8">
-        <div class="w-full max-w-4xl flex flex-col md:flex-row gap-8">
-            <div class="bg-white text-black rounded-md p-6 shadow-lg md:w-1/2 w-full space-y-6">
-                <div class="relative mx-auto md:mx-0">
-                    <div class="relative w-32 h-32 bg-gray-600 rounded-full">
-                        <span id="avatar-initials"
-                              class="absolute inset-0 flex items-center justify-center text-white font-bold text-3xl uppercase">
-                            {{ user.first_name[0] ~ user.last_name[0] }}
-                        </span>
-                        <img id="avatar-preview"
-                             src="{% if user.avatar %}{{ url_for('static', filename='avatars/'~user.avatar) }}{% endif %}"
-                             alt="Avatar"
-                             height="1"
-                             width="1"
-                             class="absolute inset-0 w-full rounded-full overflow-hidden h-full object-cover {% if not user.avatar %}hidden{% endif %}">
-                        <label for="avatar-upload"
-                               class="absolute bottom-1 right-1 z-10 bg-black text-white p-1 rounded-full hover:bg-gray-800 cursor-pointer">
-                            ✎
-                            <input id="avatar-upload"
-                                   name="avatar"
-                                   type="file"
-                                   accept="image/*"
-                                   class="hidden"
-                                   onchange="previewAvatar(event)">
-                        </label>
-                    </div>
-                </div>
-                <p class="text-center md:text-left text-lg font-semibold">{{ user.first_name }} {{ user.last_name }}</p>
-                <div id="verify-section" class="space-y-2">
-                    <p class="block text-sm font-medium">Email Address</p>
-                    <div class="flex items-center space-x-2">
-                        <p class="flex-1 text-sm font-bold">{{ user.email }}</p>
-                        {% if not user.verified %}
-                            <div class="w-1/2">{{ button("Send Code", id = "verify-email-btn", variant="verify", submit=True) }}</div>
-                        {% else %}
-                            <span id="verified-badge" class="text-green-600 font-medium text-sm">Verified</span>
-                        {% endif %}
-                    </div>
-                    <p id="verify-msg" class="text-xs text-gray-500"></p>
-                    <div class="space-y-2">
-                        <p for="change-email" class="block text-sm font-medium mb-1">Change Email Address</p>
-                        <div class="flex items-center space-x-2">
-                            <form id="change-email-form"
-                                  action="{{ url_for("main.verify_email") }}"
-                                  method="post">
-                                {{ input_field("email",
-                                                                id="email-input",
-                                                                type="email",
-                                                                placeholder="Email",
-                                                                value=user.email,
-                                                                required=True,
-                                                                disabled=not user.verified,) }}
-                            </form>
-                            <div class="w-1/2">
-                                {{ button("Send Code", submit=True, variant="black", id="change-email-btn", disabled=not user.verified) }}
-                            </div>
-                        </div>
-                        <p id="change-email-msg" class="text-xs"></p>
-                    </div>
-                    <div id="code-section" class="hidden space-y-2">
-                        <input id="verify-code-input"
-                               type="text"
-                               maxlength="6"
-                               placeholder="Enter 6-digit code"
-                               class="w-full px-4 py-2 bg-gray-100 text-black rounded-md">
-                        {{ button("Confirm Code", svg_path=None, href=None, submit=False, variant="default", id="confirm-code-btn") }}
-                        <p id="confirm-msg" class="text-xs text-red-500"></p>
-                    </div>
-                </div>
-                <div class="space-y-2">
-                    <p class="block text-sm font-medium">Change Password</p>
-                    <form id="reset-form"
-                          action="{{ url_for("auth.forgot_password") }}"
-                          method="post">
-                        <input type="hidden" name="email" value="{{ user.email }}">
-                    </form>
-                    {{ button("Send Reset Link", svg_path=None, href=None, submit=False, variant="black", id="reset-btn") }}
-                    <p id="reset-msg" class="text-xs text-gray-500 hidden"></p>
-                    {{ button("Go back to Dashboard", href='/dashboard', variant="verify") }}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+<script src="{{ url_for('static', filename='js/starfield.js') }}"></script>
+<div class="min-h-screen flex items-center justify-center bg-black text-white px-4 py-8">
+    <div class="w-full max-w-4xl flex flex-col md:flex-row gap-8">
+        <div class="bg-white text-black rounded-md p-6 shadow-lg md:w-1/2 w-full space-y-6">
+            <div class="relative mx-auto md:mx-0">
+                <div class="relative w-32 h-32 bg-gray-600 rounded-full">
+                    <span id="avatar-initials"
+                        class="absolute inset-0 flex items-center justify-center text-white font-bold text-3xl uppercase">
+                        {{ user.first_name[0] ~ user.last_name[0] }}
+                    </span>
+                    <img id="avatar-preview"
+                        src="{% if user.avatar %}{{ url_for('static', filename='avatars/'~user.avatar) }}{% endif %}"
+                        alt="Avatar" height="1" width="1"
+                        class="absolute inset-0 w-full rounded-full overflow-hidden h-full object-cover {% if not user.avatar %}hidden{% endif %}">
+                    <label for="avatar-upload"
+                        class="absolute bottom-1 right-1 z-10 bg-black text-white p-1 rounded-full hover:bg-gray-800 cursor-pointer">
+                        ✎
+                        <input id="avatar-upload" name="avatar" type="file" accept="image/*" class="hidden"
+                            onchange="previewAvatar(event)">
+                    </label>
                 </div>
             </div>
-            <div class="bg-white text-black rounded-md p-6 shadow-lg flex-1 md:w-1/2 w-full space-y-6">
-                <form id="profile-form"
-                      method="post"
-                      action="{{ url_for("main.update_profile") }}"
-                      enctype="multipart/form-data"
-                      class="space-y-6">
-                    <div>
-                        <h2 class="text-lg font-semibold">User Name</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                            {{ input_field("first_name", placeholder="First name", value=user.first_name, required=True) }}
-                            {{ input_field("last_name",  placeholder="Last name",  value=user.last_name,  required=True) }}
+            <p class="text-center md:text-left text-lg font-semibold">{{ user.first_name }} {{ user.last_name }}</p>
+            <div id="verify-section" class="space-y-2">
+                <p class="block text-sm font-medium">Email Address</p>
+                <div class="flex items-center space-x-2">
+                    <p class="flex-1 text-sm font-bold">{{ user.email }}</p>
+                    {% if not user.verified %}
+                    <div class="w-1/2">{{ button("Send Code", id = "verify-email-btn", variant="verify", submit=True) }}
+                    </div>
+                    {% else %}
+                    <span id="verified-badge" class="text-green-600 font-medium text-sm">Verified</span>
+                    {% endif %}
+                </div>
+                <p id="verify-msg" class="text-xs text-gray-500"></p>
+                <div class="space-y-2">
+                    <p for="change-email" class="block text-sm font-medium mb-1">Change Email Address</p>
+                    <div class="flex items-center space-x-2">
+                        <form id="change-email-form" action="{{ url_for('main.verify_email') }}" method="post"
+                            class="w-full space-y-3">
+                            {{ csrf_field() }}
+                            {{ input_field("email", id="email-input", placeholder="New email", required=True) }}
+                        </form>
+                        <div class="w-1/2">
+                            {{ button("Send Code", submit=True, variant="black", id="change-email-btn", disabled=not
+                            user.verified) }}
                         </div>
                     </div>
-                    <div>
-                        <h2 class="text-lg font-semibold">Default Preferences</h2>
-                        <div class="grid grid-cols-1 gap-4 mt-2">
-                            <select name="default_fuel_type" class="bg-gray-100 rounded-md px-4 py-2">
-                                {% for ft in fuel_types %}
-                                    <option value="{{ ft.name }}"
-                                            {% if user.default_fuel_type==ft.name %}selected{% endif %}>
-                                        {{ ft.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <select name="default_date_range" class="bg-gray-100 rounded-md px-4 py-2">
-                                <option value="7d"  {% if user.default_date_range=='7d' %}selected{% endif %}>Last 7 days</option>
-                                <option value="30d"
-                                        {% if user.default_date_range=='30d' %}selected{% endif %}>
-                                    Last 30 days
-                                </option>
-                                <option value="90d"
-                                        {% if user.default_date_range=='90d' %}selected{% endif %}>
-                                    Last 90 days
-                                </option>
-                            </select>
-                            <select id="default_location"
-                                    name="default_location"
-                                    class="bg-gray-100 rounded-md px-4 py-2">
-                                {% for loc in locations %}
-                                    <option value="{{ loc }}"
-                                            {% if user.default_location == loc %}selected{% endif %}>{{ loc }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-semibold">Share Link Expiry</h2>
-                        <div class="mt-2">
-                            <select name="share_expire_range"
-                                    class="bg-gray-100 text-gray-800 rounded-md px-3 py-2 focus:outline-none">
-                                <option value="1d"
-                                        {% if user.share_expire_range == '1d' %}selected{% endif %}>
-                                    Expire after 1 day
-                                </option>
-                                <option value="7d"
-                                        {% if user.share_expire_range == '7d' %}selected{% endif %}>
-                                    Expire after 7 day
-                                </option>
-                                <option value="30d"
-                                        {% if user.share_expire_range == '30d' %}selected{% endif %}>
-                                    Expire after 30 day
-                                </option>
-                                <option value="never"
-                                        {% if user.share_expire_range == 'never' %}selected{% endif %}>
-                                    Never Expire
-                                </option>
-                            </select>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1">The share link will be not accessible after setting time range</p>
-                    </div>
-                    <div class="flex justify-end">{{ button("Save Settings", submit=True, variant="black") }}</div>
-                    <p id="profile-msg" class="text-sm text-gray-600 text-center mt-2">
-                        {% for msg in get_flashed_messages() %}{{ msg }}{% endfor %}
-                    </p>
+                    <p id="change-email-msg" class="text-xs"></p>
+                </div>
+                <div id="code-section" class="hidden space-y-2">
+                    <input id="verify-code-input" type="text" maxlength="6" placeholder="Enter 6-digit code"
+                        class="w-full px-4 py-2 bg-gray-100 text-black rounded-md">
+                    {{ button("Confirm Code", svg_path=None, href=None, submit=False, variant="default",
+                    id="confirm-code-btn") }}
+                    <p id="confirm-msg" class="text-xs text-red-500"></p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <p class="block text-sm font-medium">Change Password</p>
+                <form id="reset-form" action="{{ url_for('auth.forgot_password') }}" method="post">
+                    {{ csrf_field() }}
+                    <input type="hidden" name="email" value="{{ user.email }}">
                 </form>
+                {{ button("Send Reset Link", svg_path=None, href=None, submit=False, variant="black", id="reset-btn") }}
+                <p id="reset-msg" class="text-xs text-gray-500 hidden"></p>
+                {{ button("Go back to Dashboard", href='/dashboard', variant="verify") }}
             </div>
         </div>
+        <div class="bg-white text-black rounded-md p-6 shadow-lg flex-1 md:w-1/2 w-full space-y-6">
+            <form id="profile-form" method="post" action="{{ url_for('main.update_profile') }}"
+                enctype="multipart/form-data" class="space-y-6">
+                {{ csrf_field() }}
+                <div>
+                    <h2 class="text-lg font-semibold">User Name</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        {{ input_field("first_name", placeholder="First name", value=user.first_name, required=True) }}
+                        {{ input_field("last_name", placeholder="Last name", value=user.last_name, required=True) }}
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold">Default Preferences</h2>
+                    <div class="grid grid-cols-1 gap-4 mt-2">
+                        <select name="default_fuel_type" class="bg-gray-100 rounded-md px-4 py-2">
+                            {% for ft in fuel_types %}
+                            <option value="{{ ft.name }}" {% if user.default_fuel_type==ft.name %}selected{% endif %}>
+                                {{ ft.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <select name="default_date_range" class="bg-gray-100 rounded-md px-4 py-2">
+                            <option value="7d" {% if user.default_date_range=='7d' %}selected{% endif %}>Last 7 days
+                            </option>
+                            <option value="30d" {% if user.default_date_range=='30d' %}selected{% endif %}>
+                                Last 30 days
+                            </option>
+                            <option value="90d" {% if user.default_date_range=='90d' %}selected{% endif %}>
+                                Last 90 days
+                            </option>
+                        </select>
+                        <select id="default_location" name="default_location" class="bg-gray-100 rounded-md px-4 py-2">
+                            {% for loc in locations %}
+                            <option value="{{ loc }}" {% if user.default_location==loc %}selected{% endif %}>{{ loc }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold">Share Link Expiry</h2>
+                    <div class="mt-2">
+                        <select name="share_expire_range"
+                            class="bg-gray-100 text-gray-800 rounded-md px-3 py-2 focus:outline-none">
+                            <option value="1d" {% if user.share_expire_range=='1d' %}selected{% endif %}>
+                                Expire after 1 day
+                            </option>
+                            <option value="7d" {% if user.share_expire_range=='7d' %}selected{% endif %}>
+                                Expire after 7 day
+                            </option>
+                            <option value="30d" {% if user.share_expire_range=='30d' %}selected{% endif %}>
+                                Expire after 30 day
+                            </option>
+                            <option value="never" {% if user.share_expire_range=='never' %}selected{% endif %}>
+                                Never Expire
+                            </option>
+                        </select>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">The share link will be not accessible after setting time range
+                    </p>
+                </div>
+                <div class="flex justify-end">{{ button("Save Settings", submit=True, variant="black") }}</div>
+                <p id="profile-msg" class="text-sm text-gray-600 text-center mt-2">
+                    {% for msg in get_flashed_messages() %}{{ msg }}{% endfor %}
+                </p>
+            </form>
+        </div>
     </div>
+</div>
 {% endblock %}
