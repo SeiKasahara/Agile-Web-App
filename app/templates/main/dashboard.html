@@ -152,14 +152,25 @@
                           method="post"
                           enctype="multipart/form-data"
                           class="space-y-4">
-                        <p class="block text-sm font-medium">Select CSV File</p>
                         <input name="file"
                                id="upload-csv"
                                type="file"
                                accept=".csv"
                                required
                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                        {{ button("Download Template", variant="default", href = url_for('fuel_upload.download_template') ) }}
+                        
+                        <p class="text-sm text-gray-600 mb-2">
+                                You can download historical fuel data from <a href="https://www.fuelwatch.wa.gov.au/retail/historic" target="_blank" class="text-blue-600 hover:underline">FuelWatch WA</a>.
+                                The April 2025 data below is an example from this source.
+                        </p>
+                        <div class="flex space-x-2">
+                            <div class="w-1/2">
+                                {{ button("Download Template", variant="default", href = url_for('fuel_upload.download_template')) }}
+                            </div>
+                            <div class="w-1/2">
+                                {{ button("Download April 2025 Data", variant="default", href = url_for('fuel_upload.download_demo_data')) }}
+                            </div>
+                        </div>
                         {{ button("Upload & Preview", id="upload-btn", variant="black", submit=True) }}
                     </form>
                     {% if table %}
@@ -167,7 +178,7 @@
                             <h3 class="text-xl font-semibold mb-2">Data Preview</h3>
                             <div class="relative w-full border rounded">
                                 <div class="overflow-x-auto w-full block max-h-64">
-                                    <table class="min-w-full table-auto text-xs">
+                                    <table class="min-w-full table-autosm">
                                         {{ table_header|safe }}
                                         <tbody>
                                             {% for row in sample %}
