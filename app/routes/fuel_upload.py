@@ -1,7 +1,7 @@
 import io
 import re
 import os, secrets
-from flask import Blueprint, Response, request, jsonify, current_app
+from flask import Blueprint, Response, request, jsonify, current_app, send_file
 from flask_login import login_required, current_user
 import numpy as np
 from werkzeug.utils import secure_filename
@@ -161,4 +161,18 @@ def download_template():
         buffer.getvalue(),
         mimetype='text/csv',
         headers={'Content-Disposition':'attachment; filename="fuel_upload_template.csv"'}
+    )
+
+@fuel_upload_bp.route('/upload/demo-data')
+@login_required
+def download_demo_data():
+    demo_file_path = os.path.join(current_app.root_path, 'static', 'assets', 'FuelWatchRetail-04-2025.csv')
+    if not os.path.exists(demo_file_path):
+        return jsonify(error="Demo data file not found"), 404
+    
+    return send_file(
+        demo_file_path,
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name='FuelWatchRetail-04-2025.csv'
     )

@@ -31,7 +31,7 @@ function disableButton(btn) {
     "opacity-60",
     "pointer-events-none",
     "bg-gray-300",
-    "text-gray-500"
+    "text-gray-500",
   );
   btn.classList.remove("bg-black", "text-white", "hover:bg-gray-800");
 }
@@ -42,7 +42,7 @@ function enableButton(btn) {
     "opacity-60",
     "pointer-events-none",
     "bg-gray-300",
-    "text-gray-500"
+    "text-gray-500",
   );
   btn.classList.add("bg-black", "text-white", "hover:bg-gray-800");
 }
@@ -73,40 +73,38 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const data = await resp.json();
 
-      if (!resp.ok) {
-        previewSlot.innerHTML = `<p class="text-red-500">${
-          data.error || data.message
-        }</p>`;
-        enableButton(uploadBtn);
-        uploading.classList.add("hidden");
-        uploading.classList.remove("flex");
-        return;
-      }
+      const handle = () => {
+        if (!resp.ok) {
+          previewSlot.innerHTML = `<p class="text-red-500">${
+            data.error || data.message
+          }</p>`;
+          return;
+        }
 
-      const sample = data.sample || [];
-      if (!sample.length) {
-        previewSlot.innerHTML = `<p class="text-gray-500">No data to preview.</p>`;
-        return;
-      }
+        const sample = data.sample || [];
+        if (!sample.length) {
+          previewSlot.innerHTML = `<p class="text-gray-500">No data to preview.</p>`;
+          return;
+        }
 
-      if (Array.isArray(data.sample) && data.sample.length) {
-        previewSlot.appendChild(renderTable(data.sample));
-      }
-      if (data.stats_html) {
-        const statsDiv = document.createElement("div");
-        statsDiv.innerHTML = `<h3 class="text-xl font-semibold">Statistics</h3>${data.stats_html}`;
-        previewSlot.appendChild(statsDiv);
-      }
+        if (Array.isArray(data.sample) && data.sample.length) {
+          previewSlot.appendChild(renderTable(data.sample));
+        }
+        if (data.stats_html) {
+          const statsDiv = document.createElement("div");
+          statsDiv.innerHTML = `<h3 class="text-xl font-semibold">Statistics</h3>${data.stats_html}`;
+          previewSlot.appendChild(statsDiv);
+        }
 
-      const msg = document.createElement("p");
-      msg.className = "text-green-600";
-      msg.textContent = data.message;
-      enableButton(uploadBtn);
-      uploading.classList.add("hidden");
-      uploading.classList.remove("flex");
-      previewSlot.insertBefore(msg, previewSlot.firstChild);
+        const msg = document.createElement("p");
+        msg.className = "text-green-600";
+        msg.textContent = data.message;
+        previewSlot.insertBefore(msg, previewSlot.firstChild);
+      };
+      handle();
     } catch (err) {
       previewSlot.innerHTML = `<p class="text-red-500">Internal Server Error: ${err.message}</p>`;
+    } finally {
       enableButton(uploadBtn);
       uploading.classList.add("hidden");
       uploading.classList.remove("flex");
@@ -145,15 +143,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
   var form = document.getElementById("filter-form");
   if (!form) return;
   form
     .querySelectorAll(
-      `input[name="date"], select[name="fuel_type"], select[name="location"]`
+      `input[name="date"], select[name="fuel_type"], select[name="location"]`,
     )
-    .forEach(function (el) {
-      el.addEventListener("change", function () {
+    .forEach((el) => {
+      el.addEventListener("change", () => {
         form.submit();
       });
     });
@@ -192,7 +190,9 @@ document.addEventListener("DOMContentLoaded", () => {
     urlInput.select();
     document.execCommand("copy");
     copyBtn.textContent = "Copied!";
-    setTimeout(() => (copyBtn.textContent = "Copy Link"), 2000);
+    setTimeout(() => {
+      copyBtn.textContent = "Copy Link";
+    }, 2000);
   });
 
   shareBtn.addEventListener("click", async () => {
@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
       location: loc,
       date: date,
     });
-    let url = `/dashboard/data?${params}`;
+    const url = `/dashboard/data?${params}`;
     const res = await fetch(url);
     const data = await res.json();
     console.log(data);
