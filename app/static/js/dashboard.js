@@ -100,8 +100,8 @@ document.addEventListener("DOMContentLoaded", () => {
         msg.className = "text-green-600";
         msg.textContent = data.message;
         previewSlot.insertBefore(msg, previewSlot.firstChild);
-      }
-      handle()
+      };
+      handle();
     } catch (err) {
       previewSlot.innerHTML = `<p class="text-red-500">Internal Server Error: ${err.message}</p>`;
     } finally {
@@ -190,7 +190,9 @@ document.addEventListener("DOMContentLoaded", () => {
     urlInput.select();
     document.execCommand("copy");
     copyBtn.textContent = "Copied!";
-    setTimeout(() => (copyBtn.textContent = "Copy Link"), 2000);
+    setTimeout(() => {
+      copyBtn.textContent = "Copy Link";
+    }, 2000);
   });
 
   shareBtn.addEventListener("click", async () => {
