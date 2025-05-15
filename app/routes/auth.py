@@ -138,7 +138,6 @@ def logout():
     return redirect(url_for("main.index"))
 
 @auth_bp.route("/set-password", methods=["GET", "POST"])
-@login_required
 def set_password():
     if request.method == "POST":
         new_password = request.form.get("new_password")
