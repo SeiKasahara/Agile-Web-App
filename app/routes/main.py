@@ -32,24 +32,26 @@ def profile():
         .order_by(UploadBatch.uploaded_at.desc())
         .first()
     )
-    # Query recent price records from last batch
-    qry = (
-        db.session.query(
-            PriceRecord.date.label('publish_date'),
-            FuelType.name.label('fuel_type'),
-            PriceRecord.price.label('price'),
-            Station.suburb.label('location')
-        )
-        .join(FuelType, PriceRecord.fuel_type_id == FuelType.id)
-        .join(Station, PriceRecord.station_id == Station.id)
-        .filter(PriceRecord.batch_id == last_batch.id)
-    )
-    # Read the result into a pandas DataFrame
-    sql_str = str(qry.statement.compile(compile_kwargs={"literal_binds": True}))
-    df = pd.read_sql_query(sql=sql_str, con=db.engine, parse_dates=['publish_date'])
-    # Get available fuel types and locations for the user
     fuel_types = FuelType.query.order_by(FuelType.name).all()
-    locations = ['All Locations'] + sorted(df['location'].unique().tolist())
+    locations  = ['All Locations']
+    if last_batch is not None:
+        qry = (
+            db.session.query(
+                PriceRecord.date.label('publish_date'),
+                FuelType.name.label('fuel_type'),
+                PriceRecord.price.label('price'),
+                Station.suburb.label('location')
+            )
+            .join(FuelType, PriceRecord.fuel_type_id == FuelType.id)
+            .join(Station, PriceRecord.station_id == Station.id)
+            .filter(PriceRecord.batch_id == last_batch.id)
+        )
+    
+        sql_str = str(qry.statement.compile(compile_kwargs={"literal_binds": True}))
+        df = pd.read_sql_query(sql=sql_str, con=db.engine, parse_dates=['publish_date'])
+    
+        if not df.empty:
+            locations += sorted(df['location'].unique().tolist())
     return render_template('main/profile.html', user=current_user, fuel_types=fuel_types, locations=locations)
 
 
@@ -154,8 +156,8 @@ def confirm_email():
 
     if code_input != current_user.email_verify_code:
         return jsonify(status="error", message="Invalid verification code."), 400
-
-    if current_user.email != new_email:
+  
+    if current_user.email != new_email and new_email:
         current_user.email = new_email
     current_user.verified = True
     current_user.email_verify_code = None

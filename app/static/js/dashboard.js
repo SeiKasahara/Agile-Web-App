@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   closeBtn.addEventListener("click", () => {
     modal.classList.add("hidden");
     modal.classList.remove("flex");
+    window.location.reload();
   });
 
   modal.addEventListener("click", (e) => {
@@ -31,7 +32,7 @@ function disableButton(btn) {
     "opacity-60",
     "pointer-events-none",
     "bg-gray-300",
-    "text-gray-500",
+    "text-gray-500"
   );
   btn.classList.remove("bg-black", "text-white", "hover:bg-gray-800");
 }
@@ -42,7 +43,7 @@ function enableButton(btn) {
     "opacity-60",
     "pointer-events-none",
     "bg-gray-300",
-    "text-gray-500",
+    "text-gray-500"
   );
   btn.classList.add("bg-black", "text-white", "hover:bg-gray-800");
 }
@@ -148,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!form) return;
   form
     .querySelectorAll(
-      `input[name="date"], select[name="fuel_type"], select[name="location"]`,
+      `input[name="date"], select[name="fuel_type"], select[name="location"]`
     )
     .forEach((el) => {
       el.addEventListener("change", () => {

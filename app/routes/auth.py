@@ -147,6 +147,7 @@ def google_callback():
         user.set_password("Google" + full_name)
         db.session.add(user)
         db.session.commit()
+        login_user(user)
         return redirect(url_for("auth.set_password"))
     # Log in the existing user
     login_user(user)
