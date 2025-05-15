@@ -1,5 +1,6 @@
 import unittest
 from app import create_app
+from app.models import db, User, FuelType, UploadBatch, PriceRecord
 from app.models import db, User
 from flask import current_app
 from itsdangerous import URLSafeTimedSerializer
@@ -24,7 +25,8 @@ class AuthTestCase(unittest.TestCase):
     def tearDown(self):
         with self.app.app_context():
             db.session.remove()
-            db.drop_all()
+            db.session.remove()
+        db.drop_all()
 
     # Test: New user registration should succeed
     def test_register_success(self):

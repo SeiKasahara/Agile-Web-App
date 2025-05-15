@@ -2,12 +2,13 @@ from datetime import datetime, timedelta, timezone
 import os
 import random
 import secrets
+import pandas as pd
 from werkzeug.utils import secure_filename
 
 from flask import current_app, jsonify, render_template, request, url_for
 from flask import Blueprint
 from flask_login import login_required, current_user
-from app.models import User
+from app.models import FuelType, PriceRecord, Station, UploadBatch, User
 from app.utils.mail import send_verification_code
 from app import db
 
@@ -20,7 +21,31 @@ def index():
 @main.route('/profile')
 @login_required
 def profile():
-    return render_template('main/profile.html', user=current_user)
+    # —— 1. Get the latest batch —— 
+    last_batch = (
+        UploadBatch.query
+        .filter_by(user_id=current_user.id)
+        .order_by(UploadBatch.uploaded_at.desc())
+        .first()
+    )
+    qry = (
+        db.session.query(
+            PriceRecord.date.label('publish_date'),
+            FuelType.name.label('fuel_type'),
+            PriceRecord.price.label('price'),
+            Station.suburb.label('location')
+        )
+        .join(FuelType, PriceRecord.fuel_type_id == FuelType.id)
+        .join(Station, PriceRecord.station_id == Station.id)
+        .filter(PriceRecord.batch_id == last_batch.id)
+    )
+    
+    sql_str = str(qry.statement.compile(compile_kwargs={"literal_binds": True}))
+    df = pd.read_sql_query(sql=sql_str, con=db.engine, parse_dates=['publish_date'])
+ 
+    fuel_types = FuelType.query.order_by(FuelType.name).all()
+    locations  = ['All Locations']    + sorted(df['location'].unique().tolist())
+    return render_template('main/profile.html', user=current_user, fuel_types=fuel_types, locations=locations)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -53,14 +78,7 @@ def update_profile():
     u.default_date_range = request.form.get('default_date_range', u.default_date_range)
     u.default_location   = request.form.get('default_location', u.default_location) or None
 
-    try:
-        thr = request.form.get('alert_threshold','').strip()
-        u.alert_threshold = float(thr) if thr else None
-    except ValueError:
-        pass
-    u.alert_frequency = request.form.get('alert_frequency', u.alert_frequency)
-
-    u.public_dashboard = True if request.form.get('public_dashboard')=='on' else False
+    u.share_expire_range = request.form.get('share_expire_range',u.share_expire_range)
 
     try:
         db.session.commit()

@@ -1,24 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="A FuelPrice Application" />
-        <meta name="keywords" content="FuelPrice" />
-        <title>FuelPrice Analysis WebApp</title>
-        <link rel="stylesheet"
-              href="{{ url_for('static', filename='css/style.css') }}">
-        <link href="https://fonts.cdnfonts.com/css/avenir" rel="stylesheet">
-    </head>
-    <body class="bg-black">
-        {# The star canvas #}
-        <canvas id="starfield"
-                class="fixed top-0 left-0 w-full h-full z-0 pointer-events-none"></canvas>
-        <main>
-            {% block content %}{% endblock %}
-        </main>
-    </body>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="{{ url_for('static', filename='js/tailwind.config.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A FuelPrice Application" />
+    <meta name="keywords" content="FuelPrice" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}FuelPrice Analysis WebApp{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.cdnfonts.com/css/avenir" rel="stylesheet">
+</head>
+
+<body class="bg-black">
+    {# The star canvas #}
+    <canvas id="starfield" class="fixed top-0 left-0 w-full h-full z-0 pointer-events-none"></canvas>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="{{ url_for('static', filename='js/tailwind.config.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<script>
+    // Setup CSRF token for AJAX requests
+    document.addEventListener('DOMContentLoaded', function () {
+        // Function to set CSRF token in AJAX headers
+        const setCSRFToken = function () {
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            // Set up axios if it's being used
+            if (window.axios) {
+                window.axios.defaults.headers.common['X-CSRFToken'] = token;
+            }
+
+            // Add event listener for fetch and XMLHttpRequest
+            const originalFetch = window.fetch;
+            window.fetch = function (url, options = {}) {
+                if (!options.headers) {
+                    options.headers = {};
+                }
+
+                if (options.method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method.toUpperCase())) {
+                    options.headers['X-CSRFToken'] = token;
+                }
+
+                return originalFetch.call(this, url, options);
+            };
+
+            // Override XMLHttpRequest.send
+            const originalXHRSend = XMLHttpRequest.prototype.send;
+            XMLHttpRequest.prototype.send = function (data) {
+                if (this._method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(this._method.toUpperCase())) {
+                    this.setRequestHeader('X-CSRFToken', token);
+                }
+                return originalXHRSend.call(this, data);
+            };
+
+            // Override XMLHttpRequest.open to track the method
+            const originalXHROpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function (method, url, async, user, password) {
+                this._method = method;
+                return originalXHROpen.call(this, method, url, async, user, password);
+            };
+        };
+
+        setCSRFToken();
+    });
+</script>
+
 </html>

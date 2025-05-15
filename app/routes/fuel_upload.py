@@ -1,14 +1,16 @@
+import io
 import re
 import os, secrets
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, Response, request, jsonify, current_app, send_file
 from flask_login import login_required, current_user
 import numpy as np
 from werkzeug.utils import secure_filename
 import pandas as pd
 from datetime import datetime
 from app import db
-from app.models import UploadBatch, FuelPrice
+from app.models import FuelType, PriceRecord, Station, UploadBatch
 from dateutil import parser as date_parser
+from app.utils.geocode import geocode_address
 
 # Blueprint for modular route handling
 fuel_upload_bp = Blueprint('fuel_upload', __name__)
@@ -48,44 +50,80 @@ def upload_file():
         uploaded_at=datetime.utcnow()
     )
     db.session.add(batch)
+    db.session.flush()
 
     try:
-        df = pd.read_csv(filepath, dtype=str)
+        df = pd.read_csv(filepath, dtype=str).fillna('') 
+        station_cache   = {}
+        fueltype_cache  = {}
 
         for _, row in df.iterrows():
-            raw_date = row.get('PUBLISH_DATE', '').strip()
+            # —— A. Station ——
+            addr   = row['ADDRESS'].strip()
+            post   = row['POSTCODE'].strip()
+            key    = (addr, post)
+            if key not in station_cache:
+                station = Station.query.filter_by(address=addr, postcode=post).first()
+                if not station:
+                    lat, lng = geocode_address(row['AREA_DESCRIPTION'], addr)
+                    station = Station(
+                        name      = row['TRADING_NAME'].strip(),
+                        address           = addr,
+                        suburb            = row['LOCATION'].strip(),
+                        postcode          = post,
+                        area              = row['AREA_DESCRIPTION'].strip(),
+                        region            = row['REGION_DESCRIPTION'].strip(),
+                        latitude          = lat,
+                        longitude         = lng
+                    )
+                    db.session.add(station)
+                    db.session.flush() 
+                station_cache[key] = station
+            station = station_cache[key]
+
+            # —— B. FuelType ——
+            ft_name = row['PRODUCT_DESCRIPTION'].strip()
+            if ft_name not in fueltype_cache:
+                ft = FuelType.query.filter_by(name=ft_name).first()
+                if not ft:
+                    ft = FuelType(name=ft_name)
+                    db.session.add(ft)
+                    db.session.flush()
+                fueltype_cache[ft_name] = ft
+            fuel_type = fueltype_cache[ft_name]
+
+            # —— C. Date ——
+            raw = row['PUBLISH_DATE'].strip()
             price_date = None
-            if raw_date:
-                if re.match(r'^\d{1,2}/\d{1,2}/\d{4}$', raw_date):
+            if raw:
+                if re.match(r'^\d{1,2}/\d{1,2}/\d{4}$', raw):
                     try:
-                        price_date = datetime.strptime(raw_date, "%d/%m/%Y").date()
+                        price_date = datetime.strptime(raw, "%d/%m/%Y").date()
                     except ValueError:
                         price_date = None
-
                 if price_date is None:
                     try:
-                        price_date = date_parser.parse(raw_date, dayfirst=False).date()
-                    except (ValueError, OverflowError):
+                        price_date = date_parser.parse(raw, dayfirst=False).date()
+                    except Exception:
                         price_date = None
+            if price_date is None:
+                price_date = batch.uploaded_at.date()
 
-                if price_date is None:
-                    price_date = batch.uploaded_at.date()
+            # —— D. PriceRecord ——
+            price = None
+            try:
+                price = float(row['PRODUCT_PRICE'])
+            except ValueError:
+                price = None
 
-            entry = FuelPrice(
-                batch=batch,
-                publish_date=price_date,
-                trading_name=row.get('TRADING_NAME'),
-                brand_description=row.get('BRAND_DESCRIPTION'),
-                product_description=row.get('PRODUCT_DESCRIPTION'),
-                product_price=float(row.get('PRODUCT_PRICE', 0)) if row.get('PRODUCT_PRICE') else None,
-                address=row.get('ADDRESS'),
-                location=row.get('LOCATION'),
-                postcode=row.get('POSTCODE'),
-                area_description=row.get('AREA_DESCRIPTION'),
-                region_description=row.get('REGION_DESCRIPTION')
+            rec = PriceRecord(
+                station_id   = station.id,
+                fuel_type_id = fuel_type.id,
+                date         = price_date,
+                price        = price,
+                batch_id     = batch.id
             )
-            db.session.add(entry)
-
+            db.session.add(rec)
         db.session.commit()
         try:
             df = pd.read_csv(filepath)
@@ -105,3 +143,36 @@ def upload_file():
         db.session.rollback()
         current_app.logger.exception("Failed to process uploaded CSV")
         return jsonify(error=str(e)), 500
+    
+
+@fuel_upload_bp.route('/upload/template')
+@login_required
+def download_template():
+    cols = [
+        'PUBLISH_DATE','TRADING_NAME','BRAND_DESCRIPTION',
+        'PRODUCT_DESCRIPTION','PRODUCT_PRICE','ADDRESS',
+        'LOCATION','POSTCODE','AREA_DESCRIPTION','REGION_DESCRIPTION'
+    ]
+    df = pd.DataFrame(columns=cols)
+    buffer = io.StringIO()
+    df.to_csv(buffer, index=False)
+    buffer.seek(0)
+    return Response(
+        buffer.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition':'attachment; filename="fuel_upload_template.csv"'}
+    )
+
+@fuel_upload_bp.route('/upload/demo-data')
+@login_required
+def download_demo_data():
+    demo_file_path = os.path.join(current_app.root_path, 'static', 'assets', 'FuelWatchRetail-04-2025.csv')
+    if not os.path.exists(demo_file_path):
+        return jsonify(error="Demo data file not found"), 404
+    
+    return send_file(
+        demo_file_path,
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name='FuelWatchRetail-04-2025.csv'
+    )

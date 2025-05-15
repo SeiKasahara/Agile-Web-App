@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - FuelPrice Analysis WebApp{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col items-center justify-center p-6 z-10 relative">
+    <div
+        class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-xl dark:shadow-indigo-500/10 max-w-4xl w-full p-8 border border-gray-100 dark:border-gray-800">
+        <div class="text-center mb-10">
+            <div class="mb-4 text-center">
+                <span class="inline-block text-8xl font-bold text-red-600 dark:text-red-500">4</span>
+                <span class="inline-block text-8xl font-bold text-indigo-600 dark:text-indigo-400">0</span>
+                <span class="inline-block text-8xl font-bold text-red-600 dark:text-red-500">4</span>
+            </div>
+            <h2 class="text-3xl font-semibold mb-6 text-gray-800 dark:text-gray-200">Page Not Found</h2>
+            <p class="text-lg text-gray-700 dark:text-gray-300 mb-4">
+                We're sorry but the page you are looking for cannot be found.
+            </p>
+            <p class="text-md text-gray-600 dark:text-gray-400">
+                We've recently updated our website and some links may have broken.<br>
+                You can use the navigation menu or the button below to find what you're after.
+            </p>
+        </div>
+
+        <div class="flex justify-center">
+            <a href="{{ url_for('main.index') }}"
+                class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 text-white font-semibold rounded-md transition-all duration-300 shadow-md hover:shadow-lg">
+                Back to Home
+            </a>
+        </div>
+    </div>
+
+    <div class="mt-8 text-center text-gray-400 dark:text-white/70">
+        <p>© {{ current_year }} FuelPrice Analysis WebApp</p>
+        <p class="text-sm mt-2">If you believe this is an error, please contact our support team</p>
+        <p class="text-xs mt-1 opacity-70">Design inspired by <a href="https://www.uwa.edu.au/404"
+                class="underline hover:text-gray-600 dark:hover:text-white transition-colors duration-300"
+                target="_blank" rel="noopener noreferrer">UWA's 404 page</a></p>
+    </div>
+</div>
+{% endblock %}

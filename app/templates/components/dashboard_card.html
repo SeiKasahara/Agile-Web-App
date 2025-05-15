@@ -1,0 +1,6 @@
+{% macro dashboard_card(title, value, color='blue') %}
+    <div class="bg-gray-800 rounded-lg p-6 text-center shadow hover:shadow-lg transition">
+        <h2 class="text-lg font-semibold mb-2">{{ title }}</h2>
+        <p class="text-3xl font-bold text-{{ color }}-400">{{ value }}</p>
+    </div>
+{% endmacro %} 

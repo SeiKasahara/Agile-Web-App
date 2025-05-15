@@ -1,9 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
   const openBtn = document.getElementById("open-upload-modal");
+  const openBtnMobile = document.getElementById("open-upload-modal-mobile");
   const closeBtn = document.getElementById("close-upload-modal");
   const modal = document.getElementById("upload-modal");
 
   openBtn.addEventListener("click", () => {
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  });
+  openBtnMobile.addEventListener("click", () => {
     modal.classList.remove("hidden");
     modal.classList.add("flex");
   });
@@ -26,7 +31,7 @@ function disableButton(btn) {
     "opacity-60",
     "pointer-events-none",
     "bg-gray-300",
-    "text-gray-500"
+    "text-gray-500",
   );
   btn.classList.remove("bg-black", "text-white", "hover:bg-gray-800");
 }
@@ -37,7 +42,7 @@ function enableButton(btn) {
     "opacity-60",
     "pointer-events-none",
     "bg-gray-300",
-    "text-gray-500"
+    "text-gray-500",
   );
   btn.classList.add("bg-black", "text-white", "hover:bg-gray-800");
 }
@@ -68,40 +73,38 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const data = await resp.json();
 
-      if (!resp.ok) {
-        previewSlot.innerHTML = `<p class="text-red-500">${
-          data.error || data.message
-        }</p>`;
-        enableButton(uploadBtn);
-        uploading.classList.add("hidden");
-        uploading.classList.remove("flex");
-        return;
-      }
+      const handle = () => {
+        if (!resp.ok) {
+          previewSlot.innerHTML = `<p class="text-red-500">${
+            data.error || data.message
+          }</p>`;
+          return;
+        }
 
-      const sample = data.sample || [];
-      if (!sample.length) {
-        previewSlot.innerHTML = `<p class="text-gray-500">No data to preview.</p>`;
-        return;
-      }
+        const sample = data.sample || [];
+        if (!sample.length) {
+          previewSlot.innerHTML = `<p class="text-gray-500">No data to preview.</p>`;
+          return;
+        }
 
-      if (Array.isArray(data.sample) && data.sample.length) {
-        previewSlot.appendChild(renderTable(data.sample));
-      }
-      if (data.stats_html) {
-        const statsDiv = document.createElement("div");
-        statsDiv.innerHTML = `<h3 class="text-xl font-semibold">Statistics</h3>${data.stats_html}`;
-        previewSlot.appendChild(statsDiv);
-      }
+        if (Array.isArray(data.sample) && data.sample.length) {
+          previewSlot.appendChild(renderTable(data.sample));
+        }
+        if (data.stats_html) {
+          const statsDiv = document.createElement("div");
+          statsDiv.innerHTML = `<h3 class="text-xl font-semibold">Statistics</h3>${data.stats_html}`;
+          previewSlot.appendChild(statsDiv);
+        }
 
-      const msg = document.createElement("p");
-      msg.className = "text-green-600";
-      msg.textContent = data.message;
-      enableButton(uploadBtn);
-      uploading.classList.add("hidden");
-      uploading.classList.remove("flex");
-      previewSlot.insertBefore(msg, previewSlot.firstChild);
+        const msg = document.createElement("p");
+        msg.className = "text-green-600";
+        msg.textContent = data.message;
+        previewSlot.insertBefore(msg, previewSlot.firstChild);
+      };
+      handle();
     } catch (err) {
       previewSlot.innerHTML = `<p class="text-red-500">Internal Server Error: ${err.message}</p>`;
+    } finally {
       enableButton(uploadBtn);
       uploading.classList.add("hidden");
       uploading.classList.remove("flex");
@@ -138,4 +141,96 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return table;
   }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  var form = document.getElementById("filter-form");
+  if (!form) return;
+  form
+    .querySelectorAll(
+      `input[name="date"], select[name="fuel_type"], select[name="location"]`,
+    )
+    .forEach((el) => {
+      el.addEventListener("change", () => {
+        form.submit();
+      });
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const shareBtn = document.getElementById("share-dashboard-btn");
+  const modal = document.getElementById("share-modal");
+  const closeBtn = document.getElementById("close-share-btn");
+  const urlInput = document.getElementById("share-url-input");
+  const copyBtn = document.getElementById("copy-share-btn");
+  const twitterBtn = document.getElementById("twitter-share");
+  const facebookBtn = document.getElementById("facebook-share");
+  const linkedinBtn = document.getElementById("linkedin-share");
+
+  function openModal(shareUrl) {
+    urlInput.value = shareUrl;
+    const encoded = encodeURIComponent(shareUrl);
+    const text = encodeURIComponent("Check out my FuelPrice Dashboard!");
+    twitterBtn.href = `https://twitter.com/intent/tweet?url=${encoded}&text=${text}`;
+    facebookBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${encoded}`;
+    linkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encoded}`;
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  }
+
+  closeBtn.addEventListener("click", () => {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  });
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.classList.add("hidden");
+  });
+
+  copyBtn.addEventListener("click", () => {
+    urlInput.select();
+    document.execCommand("copy");
+    copyBtn.textContent = "Copied!";
+    setTimeout(() => {
+      copyBtn.textContent = "Copy Link";
+    }, 2000);
+  });
+
+  shareBtn.addEventListener("click", async () => {
+    const fuel = document.getElementById("fuel_type_select").value;
+    const loc = document.getElementById("location_select").value;
+    const date = document.getElementById("date_select").value;
+    const forecastChart = Chart.getChart("forecastChart");
+    const forecastConfig = JSON.parse(JSON.stringify(forecastChart.config));
+    const params = new URLSearchParams({
+      fuel_type: fuel,
+      location: loc,
+      date: date,
+    });
+    const url = `/dashboard/data?${params}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    console.log(data);
+
+    const { points } = data;
+
+    try {
+      const res = await fetch("/share/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fuel,
+          loc,
+          date,
+          forecastConfig,
+          heatmapPoints: points,
+        }),
+      });
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+      const { url } = await res.json();
+      openModal(url);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate share link. Please try again.");
+    }
+  });
 });
