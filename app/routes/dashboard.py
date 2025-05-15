@@ -7,6 +7,7 @@ from app import db
 from app.utils.station_loader import load_wa_stations
 import numpy as np
 
+# Define a blueprint for dashboard-related routes
 dashboard_bp = Blueprint(
     'dashboard',
     __name__,
@@ -20,7 +21,7 @@ def dashboard_home():
     # load basic station geodata
     load_wa_stations()
 
-    # —— 1. Get the latest batch —— 
+    # —— 1. Get the latest batch ——
     last_batch = (
         UploadBatch.query
         .filter_by(user_id=current_user.id)
@@ -28,6 +29,7 @@ def dashboard_home():
         .first()
     )
     if not last_batch:
+        # If no batch exists, return default empty data
         empty = {'labels': [], 'datasets': []}
         default_metrics = {
             'avg_price':   "$0.00",
@@ -42,7 +44,7 @@ def dashboard_home():
                                locations=['All Locations'],
                                metrics=default_metrics)
 
-    # —— 2. From DB to dataframe —— 
+    # —— 2. From DB to dataframe ——
     qry = (
         db.session.query(
             PriceRecord.date.label('publish_date'),
@@ -54,20 +56,23 @@ def dashboard_home():
         .join(Station, PriceRecord.station_id == Station.id)
         .filter(PriceRecord.batch_id == last_batch.id)
     )
-    
+
     sql_str = str(qry.statement.compile(compile_kwargs={"literal_binds": True}))
     df = pd.read_sql_query(sql=sql_str, con=db.engine, parse_dates=['publish_date'])
- 
+
+    # Add formatted date columns for grouping
     df['date_str']  = df['publish_date'].dt.strftime('%Y-%m-%d')
     df['week_str']  = 'Week ' + df['publish_date'].dt.isocalendar().week.astype(str)
     df['month_str'] = df['publish_date'].dt.strftime('%Y-%m')
 
+    # Get available fuel types and locations
     fuel_types = FuelType.query.order_by(FuelType.name).all()
     locations  = ['All Locations']    + sorted(df['location'].unique().tolist())
     sel_fuel = request.args.get('fuel_type', 'All Fuel Types')
     sel_loc  = request.args.get('location',  'All Locations')
     sel_date = request.args.get('date')
 
+    # Filter the dataframe based on user selection
     df_f = df
     if sel_fuel != 'All Fuel Types':
         df_f = df_f[df_f['fuel_type'] == sel_fuel]
@@ -76,10 +81,12 @@ def dashboard_home():
     if sel_date:
         df_f = df_f[df_f['date_str'] == sel_date]
 
+    # Limit the number of data points for performance
     MAX_POINTS = 1000
     if len(df_f) > MAX_POINTS:
         df_f = df_f.sample(n=MAX_POINTS, random_state=42)
 
+    # Helper function to build chart data
     def build_chart(dfg, by):
         labels = sorted(dfg[by].unique())
         datasets = []
@@ -91,12 +98,14 @@ def dashboard_home():
             datasets.append({'label': ft, 'data': data, 'tension': 0.1})
         return {'labels': labels, 'datasets': datasets}
 
+    # Build chart data for daily, weekly, and monthly views
     chart_data = {
         'daily':   build_chart(df_f, 'date_str'),
         'weekly':  build_chart(df_f, 'week_str'),
         'monthly': build_chart(df_f, 'month_str'),
     }
 
+    # # Calculate metrics for the dashboard
     if not df_f.empty:
         avg_price   = df_f['price'].mean()
         volatility  = df_f['price'].std() * 100
@@ -112,6 +121,7 @@ def dashboard_home():
         'expensive':   f"${max_price:.2f}"
     }
 
+    # Render the dashboard template with the data
     return render_template('main/dashboard.html',
                            user=current_user,
                            chart_data=chart_data,
@@ -121,11 +131,14 @@ def dashboard_home():
 
 @dashboard_bp.route('/data')
 @login_required
+# Helper function to build chart data
 def heatmap_data():
+    # Get filter parameters from the request
     sel_fuel = request.args.get('fuel_type')
     sel_loc  = request.args.get('location')
     sel_date = request.args.get('date')
 
+    # Build a query to aggregate price data for heatmap display
     qry = (
         db.session.query(
             Station.latitude,
@@ -136,6 +149,7 @@ def heatmap_data():
         .filter(PriceRecord.batch.has(user_id=current_user.id))
     )
 
+    # Apply filters if specified in request
     if sel_fuel and sel_fuel != 'All Fuel Types':
         qry = qry.join(FuelType, PriceRecord.fuel_type_id == FuelType.id) \
                  .filter(FuelType.name == sel_fuel)
@@ -151,6 +165,7 @@ def heatmap_data():
         except ValueError:
             pass
 
+    # Only include valid coordinates
     qs = (
         qry
         .filter(
@@ -162,6 +177,7 @@ def heatmap_data():
         .all()
     )
 
+    # Define bounds for WA region
     MIN_LAT, MAX_LAT = -35.0, -13.5
     MIN_LNG, MAX_LNG = 112.9, 129.0
 
@@ -173,17 +189,20 @@ def heatmap_data():
             continue
         points.append([lat, lng, float(w)])
 
+    # Return data as JSON for frontend heatmap
     return jsonify(points=points)
 
 
 @dashboard_bp.route('/forecast')
 @login_required
 def get_forecast():
+    # Get filter and algorithm parameters from the request
     sel_fuel = request.args.get('fuel_type')
     sel_loc  = request.args.get('location')
     algorithm = request.args.get('algorithm', 'linear')
     query_num = 50000
 
+    # Query historical price records for the user and filters
     qry = (
         db.session.query(PriceRecord.date.label('date'),
                          PriceRecord.price.label('price'))
@@ -200,29 +219,35 @@ def get_forecast():
 
     rows = qry.order_by(PriceRecord.date.desc()).limit(query_num).all()
     if not rows:
+        # Return empty response if no data
         return jsonify(dates=[], historical=[], forecast=[])
 
+    # Load query results into a DataFrame
     df = pd.DataFrame(rows, columns=['date','price'])
     df['date'] = pd.to_datetime(df['date'])
 
+    # Group by date and select minimum price per day
     df = (
         df.groupby('date', as_index=False)['price']
           .min()
           .sort_values('date')
     )
 
+    # Only keep the latest 30 days if more data available
     if len(df) > 30:
         df = df.iloc[-30:]
 
+    # Prepare features for prediction model
     if df['date'].nunique() == 1:
         X = np.arange(len(df)).reshape(-1,1)
     else:
         X = (df['date'] - df['date'].min()).dt.days.values.reshape(-1,1)
     y = df['price'].values
 
+    # Select and train the specified prediction algorithm
     if algorithm == 'seasonal':
         from sklearn.linear_model import LinearRegression
-        t = X.flatten() 
+        t = X.flatten()
         sin7 = np.sin(2 * np.pi * t / 7)
         cos7 = np.cos(2 * np.pi * t / 7)
         X_seasonal = np.vstack([t, sin7, cos7]).T
@@ -232,10 +257,11 @@ def get_forecast():
     elif algorithm == 'tree':
         from sklearn.tree import DecisionTreeRegressor
         model = DecisionTreeRegressor(max_depth=5).fit(X, y)
-    else:  # default to linear
+    else:  # # Default to linear regression
         from sklearn.linear_model import LinearRegression
         model = LinearRegression().fit(X, y)
 
+    # Prepare data for the response
     dates      = df['date'].dt.strftime('%Y-%m-%d').tolist()
     historical = np.round(y, 2).tolist()
 
@@ -243,11 +269,13 @@ def get_forecast():
     base_days  = (last_day - df['date'].min()).days if df['date'].nunique()>1 else 0
     future_idxs = np.arange(1,8).reshape(-1,1) + base_days
 
+    # Prepare dates for the next 7 days
     future_dates = [
         (last_day + pd.Timedelta(days=i)).strftime('%Y-%m-%d')
         for i in range(1,8)
     ]
 
+    # Generate predictions for the next 7 days
     if algorithm == 'seasonal':
         future_t = future_idxs.flatten()
         sin7_f = np.sin(2 * np.pi * future_t / 7)
@@ -256,12 +284,13 @@ def get_forecast():
         future_preds = model.predict(Xf).round(2).tolist()
     else:
         future_preds = model.predict(future_idxs).round(2).tolist()
-    
+
     forecast = [
         {'date': d, 'price': p}
         for d, p in zip(future_dates, future_preds)
     ]
 
+    # Return historical and forecasted data as JSON
     return jsonify(dates=dates,
                    historical=historical,
                    forecast=forecast)
@@ -270,6 +299,7 @@ def _gather_dashboard_data(user_id,
                            fuel_type: str = "All Fuel Types",
                            location: str  = "All Locations",
                            filter_date: str = None):
+    # Get the latest upload batch for the user
     last_batch = (
         UploadBatch.query
         .filter_by(user_id=user_id)
@@ -285,8 +315,10 @@ def _gather_dashboard_data(user_id,
         "expensive":   "$0.00"
     }
     if not last_batch:
+        # Return empty chart data and metrics if no batch
         return chart_data, metrics
- 
+
+    # Load price records for the batch into a DataFrame
     qry = (
         db.session.query(
             PriceRecord.date.label('publish_date'),
@@ -298,16 +330,18 @@ def _gather_dashboard_data(user_id,
         .join(Station, PriceRecord.station_id == Station.id)
         .filter(PriceRecord.batch_id == last_batch.id)
     )
-    
+
     sql_str = str(qry.statement.compile(compile_kwargs={"literal_binds": True}))
     df = pd.read_sql_query(sql=sql_str, con=db.engine, parse_dates=['publish_date'])
- 
+
+    # Add formatted columns for time grouping
     df['date_str']  = df['publish_date'].dt.strftime('%Y-%m-%d')
     df["date_str"]  = df["publish_date"].dt.strftime("%Y-%m-%d")
     df["week_str"]  = "Week " + df["publish_date"].dt.isocalendar().week.astype(str)
     df["month_str"] = df["publish_date"].dt.strftime("%Y-%m")
 
     df_f = df.copy()
+    # Apply fuel type, location, and date filters
     if fuel_type and fuel_type != "All Fuel Types":
         df_f = df_f[df_f["fuel_type"] == fuel_type]
     if location and location != "All Locations":
@@ -315,6 +349,7 @@ def _gather_dashboard_data(user_id,
     if filter_date:
         df_f = df_f[df_f["date_str"] == filter_date]
 
+    # Limit number of data points to avoid performance issues
     MAX_POINTS = 1000
     if len(df_f) > MAX_POINTS:
         types = df_f["fuel_type"].unique().tolist()
@@ -326,6 +361,7 @@ def _gather_dashboard_data(user_id,
         if len(df_f) > MAX_POINTS:
             df_f = df_f.sample(n=MAX_POINTS, random_state=42)
 
+    # Helper to construct chart data structure
     def build_chart(df_grp, label_col):
         labels = sorted(df_grp[label_col].unique().tolist())
         datasets = []
@@ -349,6 +385,7 @@ def _gather_dashboard_data(user_id,
         "monthly": build_chart(df_f, "month_str"),
     }
 
+    # Calculate summary statistics for metrics
     if not df_f.empty:
         avg_price  = df_f["price"].mean()
         vol        = df_f["price"].std() * 100
@@ -361,4 +398,5 @@ def _gather_dashboard_data(user_id,
             "expensive":  f"${max_price:.2f}"
         }
 
+    # Return chart data and dashboard metrics
     return chart_data, metrics

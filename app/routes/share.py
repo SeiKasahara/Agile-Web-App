@@ -7,40 +7,48 @@ from app import db
 from app.routes.dashboard import _gather_dashboard_data
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
+# Blueprint for share/report related routes
 share_bp = Blueprint('share', __name__, url_prefix='/share')
 
+
 def make_share_token(share_id):
+    # Generate a signed token for the shared report using the SECRET_KEY
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     payload = {
-        'share_id':   share_id,
+        'share_id': share_id,
     }
     return s.dumps(payload)
+
 
 @share_bp.route('/create', methods=['POST'])
 @login_required
 def create_share():
+    # Endpoint for creating a new shared report (AJAX POST)
     data = request.get_json()
-    
+
     share = SharedReport(
-      user_id             = current_user.id,
-      fuel_type           = data['fuel'],
-      location            = data['loc'],
-      date                = data['date'],
-      forecast_config     = json.dumps(data['forecastConfig']),
-      heatmap_points_json = json.dumps(data['heatmapPoints'])
+        user_id=current_user.id,
+        fuel_type=data['fuel'],
+        location=data['loc'],
+        date=data['date'],
+        forecast_config=json.dumps(data['forecastConfig']),
+        heatmap_points_json=json.dumps(data['heatmapPoints'])
     )
-    
+
     db.session.add(share)
     db.session.commit()
 
+    # Generate a signed share token and return the shareable URL
     token = make_share_token(share_id=share.id)
     url = url_for('share.report', token=token, _external=True)
     return jsonify(url=url)
 
+
 @share_bp.route('/report')
 def report():
+    # Endpoint for displaying a shared report given a valid token
     token = request.args.get('token')
-    
+
     if not token:
         abort(400)
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
@@ -48,11 +56,12 @@ def report():
         data = s.loads(token)
     except BadSignature:
         return "Invalid link", 403
-    
+
     share = SharedReport.query.get(data['share_id'])
     if not share:
         abort(404)
 
+    # Gather data for the shared dashboard report
     chart_data, metrics = _gather_dashboard_data(
         user_id=share.user_id,
         fuel_type=share.fuel_type,
@@ -62,6 +71,7 @@ def report():
 
     share_user = User.query.get(share.user_id)
 
+    # Check if the share link is still valid (not expired)
     expire_range = getattr(share_user, 'share_expire_range', None) or '7d'
 
     if expire_range != 'never':
@@ -74,24 +84,27 @@ def report():
         else:
             max_age = 7 * 24 * 3600
         try:
+            # This checks the age of the token for expiration
             s.loads(token, max_age=max_age)
         except SignatureExpired:
             return "Link expired", 403
         except BadSignature:
             return "Invalid link", 403
 
+    # Decode forecast config and heatmap points from stored JSON
     forecast_config = json.loads(share.forecast_config)
-    heatmap_points  = json.loads(share.heatmap_points_json)
+    heatmap_points = json.loads(share.heatmap_points_json)
 
+    # Render the shared report template with all relevant data
     return render_template(
         'share/report.html',
-        first_name                = share_user.first_name,
-        last_name = share_user.last_name,
-        chart_data    = chart_data,
-        metrics       = metrics,
-        fuel_type           = share.fuel_type,
-        location            = share.location,
-        date                = share.date,
-        forecast_config     = forecast_config,
-        heatmap_points      = heatmap_points
+        first_name=share_user.first_name,
+        last_name=share_user.last_name,
+        chart_data=chart_data,
+        metrics=metrics,
+        fuel_type=share.fuel_type,
+        location=share.location,
+        date=share.date,
+        forecast_config=forecast_config,
+        heatmap_points=heatmap_points
     )
