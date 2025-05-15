@@ -170,6 +170,8 @@ Agile-Web-App/
 | User         | uploads        | relationship(back\_populates) | UploadBatch   | User has many uploads                  |
 | SharedReport | user\_id       | ForeignKey                    | User          | Shared report belongs to a user        |
 
+#### Database Schema
+![Fule_app.drawio.png](Fule_app.drawio.png)
 
 ## Security Features
 
