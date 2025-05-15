@@ -148,9 +148,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("filter-form");
   if (!form) return;
   for (const el of form.querySelectorAll(
-      `input[name="date"], select[name="fuel_type"], select[name="location"]`
-    )
-  ) {
+    `input[name="date"], select[name="fuel_type"], select[name="location"]`
+  )) {
     el.addEventListener("change", () => {
       form.submit();
     });
