@@ -213,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const { points } = data;
 
     // Get selected components
-    const selectedComponents = Array.from(document.querySelectorAll('input[name="share_components"]:checked'))
+    const selectedComponents = Array.from(document.querySelectorAll("input[name='share_components']:checked"))
       .map(cb => cb.value);
 
     // Get email if provided
