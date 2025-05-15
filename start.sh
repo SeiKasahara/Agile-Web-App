@@ -1,17 +1,26 @@
 #!/bin/bash
 
-
 if [ -d ".venv" ]; then
   VENV_DIR=".venv"
 elif [ -d "venv" ]; then
   VENV_DIR="venv"
 else
-    echo "Virtual environment ($VENV_DIR) not found!"
-    echo "Please create one using: python -m venv venv"
-    exit 1
+  echo "Virtual environment not found!"
+  echo "Please create one using: python -m venv venv"
+  exit 1
 fi
 
-source $VENV_DIR/Scripts/activate
+# Try Unix-style activation first
+if [ -f "$VENV_DIR/bin/activate" ]; then
+  source "$VENV_DIR/bin/activate"
+# Fallback to Windows-style activation
+elif [ -f "$VENV_DIR/Scripts/activate" ]; then
+  source "$VENV_DIR/Scripts/activate"
+else
+  echo "Activation script not found in $VENV_DIR!"
+  exit 1
+fi
+
 echo "Activated virtual environment."
 
 echo "install the requirements library"
