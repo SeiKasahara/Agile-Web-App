@@ -5,8 +5,10 @@ import pandas as pd
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from app import db
 
-db = SQLAlchemy()
+
+
 CSV_FILE = "fuel_prices_april_full.csv"
 
 class User(db.Model, UserMixin):
