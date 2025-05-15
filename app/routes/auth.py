@@ -126,6 +126,7 @@ def google_callback():
         user.set_password("Google"+full_name)
         db.session.add(user)
         db.session.commit()
+        login_user(user)
         return redirect(url_for("auth.set_password"))
     login_user(user)
     return redirect(url_for("dashboard.dashboard_home"))
@@ -138,6 +139,7 @@ def logout():
     return redirect(url_for("main.index"))
 
 @auth_bp.route("/set-password", methods=["GET", "POST"])
+@login_required
 def set_password():
     if request.method == "POST":
         new_password = request.form.get("new_password")
