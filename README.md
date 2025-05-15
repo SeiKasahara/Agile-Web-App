@@ -171,7 +171,7 @@ Agile-Web-App/
 | SharedReport | user\_id       | ForeignKey                    | User          | Shared report belongs to a user        |
 
 #### Database Schema
-![Fule_app.drawio.png](Fule_app.drawio.png)
+![Fule_app.drawio.png](image/Fule_app.drawio.png)
 
 ## Security Features
 
