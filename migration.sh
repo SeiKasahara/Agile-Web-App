@@ -12,7 +12,7 @@ if [ ! -d "$VENV_DIR" ]; then
     exit 1
 fi
 
-source $VENV_DIR/Scripts/activate
+source $VENV_DIR/bin/activate
 echo "Activated virtual environment."
 
 if [ ! -d "migrations" ] || [ -z "$(ls -A migrations)" ]; then

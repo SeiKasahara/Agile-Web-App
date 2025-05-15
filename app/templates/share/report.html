@@ -1,108 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>FuelPrice Report — {{ first_name }}</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="description" content="FuelPrice Report Share" />
-    <meta name="keywords" content="FuelPrice" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-    <script></script>
-  </head>
-  <body class="bg-gray-900 text-white font-sans p-6">
-    <header class="mb-6">
-      <h1 class="text-3xl font-bold">FuelPrice Analysis Report</h1>
-      <p class="text-gray-400">User: {{ first_name }} {{ last_name }}</p>
-      <ul class="mt-2 text-gray-300 space-y-1">
-        <li>
-          <strong>Fuel Type:</strong> {{ fuel_type }}
-        </li>
-        <li>
-          <strong>Location:</strong> {{ location }}
-        </li>
-        {% if date %}
-          <li>
-            <strong>Date:</strong> {{ date }}
-          </li>
-        {% endif %}
-      </ul>
-    </header>
-    <!-- Metrics -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      {% from "components/dashboard_card.html" import dashboard_card %}
-      {{ dashboard_card('Avg Price',   metrics.avg_price,   'blue') }}
-      {{ dashboard_card('Volatility',  metrics.volatility,  'yellow') }}
-      {{ dashboard_card('Cheapest',    metrics.cheapest,    'green') }}
-      {{ dashboard_card('Expensive',   metrics.expensive,   'red') }}
+
+<head>
+  <meta charset="UTF-8">
+  <title>FuelPrice Report — {{ first_name }}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="FuelPrice Report Share" />
+  <meta name="keywords" content="FuelPrice" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script></script>
+</head>
+
+<body class="bg-gray-900 text-white font-sans p-6">
+  <header class="mb-6">
+    <h1 class="text-3xl font-bold">FuelPrice Analysis Report</h1>
+    <p class="text-gray-400">User: {{ first_name }} {{ last_name }}</p>
+    <ul class="mt-2 text-gray-300 space-y-1">
+      <li>
+        <strong>Fuel Type:</strong> {{ fuel_type }}
+      </li>
+      <li>
+        <strong>Location:</strong> {{ location }}
+      </li>
+      {% if date %}
+      <li>
+        <strong>Date:</strong> {{ date }}
+      </li>
+      {% endif %}
+    </ul>
+  </header>
+
+  {% if 'metrics' in components %}
+  <!-- Metrics -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    {% from "components/dashboard_card.html" import dashboard_card %}
+    {{ dashboard_card('Avg Price', metrics.avg_price, 'blue') }}
+    {{ dashboard_card('Volatility', metrics.volatility, 'yellow') }}
+    {{ dashboard_card('Cheapest', metrics.cheapest, 'green') }}
+    {{ dashboard_card('Expensive', metrics.expensive, 'red') }}
+  </div>
+  {% endif %}
+
+  {% if 'time_trends' in components %}
+  <!-- Price Trends -->
+  <section class="mb-8">
+    <h2 class="text-2xl font-semibold mb-4">Price Trends</h2>
+    <div class="bg-gray-800 rounded-lg p-4">
+      {% from "components/dashboard/time_trends.html" import time_trends %}
+      {{ time_trends(chart_data) }}
     </div>
-    <!-- Price Trends -->
-    <section class="mb-8">
-      <h2 class="text-2xl font-semibold mb-4">Price Trends</h2>
-      <div class="bg-gray-800 rounded-lg p-4">
-        {% from "components/dashboard/time_trends.html" import time_trends %}
-        {{ time_trends(chart_data) }}
-      </div>
-    </section>
-    <!-- 7-Day Forecast -->
-    <section class="mb-8">
-      <h2 class="text-2xl font-semibold mb-4">7-Day Forecast & Best Time to Fill</h2>
-      <div class="relative w-full aspect-video bg-gray-800 rounded-lg overflow-hidden">
-        <canvas id="forecastChart" class="w-full h-64"></canvas>
-        <p id="forecastInfo" class="mt-2 text-center text-gray-400"></p>
-      </div>
-    </section>
-    <!-- Regional Heatmap -->
-    <section class="mb-8">
-      <h2 class="text-2xl font-semibold mb-4">Regional Heatmap</h2>
-      <div id="heatmap-map" class="w-full h-96 bg-gray-800 rounded-lg"></div>
-    </section>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </body>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const fc      = {{ forecast_config | tojson }};
-      const points  = {{ heatmap_points  | tojson }};
-      const ctx  = document.getElementById("forecastChart").getContext("2d");
-      new Chart(ctx, fc._config);
+  </section>
+  {% endif %}
 
-      const info = document.getElementById("forecastInfo");
-      const histDs = fc._config.data.datasets.find(d => d.label === "Historical");
-      const forecastDs = fc._config.data.datasets.find(d => d.label === "Forecast");
-      if (histDs && forecastDs) {
-        const baseLen = histDs.data.length;
-        let best = { idx: baseLen, price: forecastDs.data[0] };
-        forecastDs.data.forEach((p,i) => {
-          if (p !== null && p < best.price) best = { idx: baseLen + i, price: p };
-        });
-        const bestDate = fc.data.labels[best.idx];
-        info.textContent = `Best time to fill: ${bestDate} at $${best.price.toFixed(2)}`;
-        info.className   = 'mt-2 text-center text-green-400';
-      }
+  {% if 'forecast' in components %}
+  <!-- 7-Day Forecast -->
+  <section class="mb-8">
+    <h2 class="text-2xl font-semibold mb-4">7-Day Forecast & Best Time to Fill</h2>
+    <div class="relative w-full aspect-video bg-gray-800 rounded-lg overflow-hidden">
+      <canvas id="forecastChart" class="w-full h-64"></canvas>
+      <p id="forecastInfo" class="mt-2 text-center text-gray-400"></p>
+    </div>
+  </section>
+  {% endif %}
 
-      // map
-      const map = L.map('heatmap-map').setView(points[0] ? [points[0][0], points[0][1]] : [-31.9,115.9], 9);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  {% if 'heatmap' in components %}
+  <!-- Regional Heatmap -->
+  <section class="mb-8">
+    <h2 class="text-2xl font-semibold mb-4">Regional Heatmap</h2>
+    <div id="heatmap-map" class="w-full h-96 bg-gray-800 rounded-lg"></div>
+  </section>
+  {% endif %}
 
-      if (!points.length) {
-        L.popup().setLatLng(map.getCenter()).setContent('No data for your selection.').openOn(map);
-      } else {
-        const vals = points.map(p => p[2]);
-        const minV = Math.min(...vals), maxV = Math.max(...vals);
-        points.forEach(([lat,lng,w]) => {
-          const pct = maxV > minV ? (w - minV) / (maxV - minV) : 0;
-          L.circleMarker([lat,lng], {
-            radius: 4 + 8 * pct,
-            fillColor: `hsl(${(1-pct)*240},100%,50%)`,
-            color: '#000', weight: 0.5, fillOpacity: 0.8
-          })
-          .bindPopup(`\$${w.toFixed(2)}`)
-          .addTo(map);
-        });
-      }
+  {% if 'fuel_comparison' in components %}
+  <!-- Fuel Comparison -->
+  <section class="mb-8">
+    <h2 class="text-2xl font-semibold mb-4">Fuel Type Comparison</h2>
+    <div class="bg-gray-800 rounded-lg p-4">
+      {% from "components/dashboard/fuel_comparison.html" import fuel_comparison %}
+      {{ fuel_comparison(chart_data) }}
+    </div>
+  </section>
+  {% endif %}
+
+  <script src="https://cdn.tailwindcss.com"></script>
+</body>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    {% if 'forecast' in components %}
+    const fc = {{ forecast_config | tojson
+  }};
+  const ctx = document.getElementById("forecastChart").getContext("2d");
+  new Chart(ctx, fc._config);
+
+  const info = document.getElementById("forecastInfo");
+  const histDs = fc._config.data.datasets.find(d => d.label === "Historical");
+  const forecastDs = fc._config.data.datasets.find(d => d.label === "Forecast");
+  if (histDs && forecastDs) {
+    const baseLen = histDs.data.length;
+    let best = { idx: baseLen, price: forecastDs.data[0] };
+    forecastDs.data.forEach((p, i) => {
+      if (p !== null && p < best.price) best = { idx: baseLen + i, price: p };
     });
-  </script>
+    const bestDate = fc.data.labels[best.idx];
+    info.textContent = `Best time to fill: ${bestDate} at $${best.price.toFixed(2)}`;
+    info.className = 'mt-2 text-center text-green-400';
+  }
+  {% endif %}
+
+  {% if 'heatmap' in components %}
+  // map
+  const points = {{ heatmap_points | tojson }};
+  const map = L.map('heatmap-map').setView(points[0] ? [points[0][0], points[0][1]] : [-31.9, 115.9], 9);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+  if (!points.length) {
+    L.popup().setLatLng(map.getCenter()).setContent('No data for your selection.').openOn(map);
+  } else {
+    const vals = points.map(p => p[2]);
+    const minV = Math.min(...vals), maxV = Math.max(...vals);
+    points.forEach(([lat, lng, w]) => {
+      const pct = maxV > minV ? (w - minV) / (maxV - minV) : 0;
+      L.circleMarker([lat, lng], {
+        radius: 4 + 8 * pct,
+        fillColor: `hsl(${(1 - pct) * 240},100%,50%)`,
+        color: '#000', weight: 0.5, fillOpacity: 0.8
+      })
+        .bindPopup(`\$${w.toFixed(2)}`)
+        .addTo(map);
+    });
+  }
+  {% endif %}
+    });
+</script>
+
 </html>

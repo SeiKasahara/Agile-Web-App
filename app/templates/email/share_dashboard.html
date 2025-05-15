@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>FuelPrice Dashboard Shared</title>
+</head>
+
+<body
+    style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+        <h1 style="color: #2d3748; margin-bottom: 20px;">FuelPrice Dashboard Shared</h1>
+
+        <p>Hello,</p>
+
+        <p>{{ user.first_name }} {{ user.last_name }} has shared their FuelPrice dashboard with you. This dashboard
+            provides insights into fuel prices, trends, and predictions.</p>
+
+        <div style="background-color: #fff; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p style="margin: 0;"><strong>View the dashboard:</strong></p>
+            <a href="{{ share_url }}"
+                style="display: inline-block; background-color: #4299e1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">
+                Open Dashboard
+            </a>
+        </div>
+
+        <p style="color: #666; font-size: 14px;">This link will expire according to the sender's sharing settings.</p>
+
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+
+        <p style="color: #666; font-size: 12px;">
+            This email was sent from FuelPrice Analysis WebApp. If you did not expect this email, please ignore it.
+        </p>
+    </div>
+</body>
+
+</html>

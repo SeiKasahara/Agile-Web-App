@@ -118,26 +118,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
-    Object.keys(records[0]).forEach((key) => {
+    for (const key of Object.keys(records[0])) {
       const th = document.createElement("th");
       th.className = "px-2 py-1 bg-gray-200 text-gray-700";
       th.textContent = key;
       headerRow.appendChild(th);
-    });
+    }
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
     const tbody = document.createElement("tbody");
-    records.forEach((row) => {
+    for (const row of records) {
       const tr = document.createElement("tr");
-      Object.values(row).forEach((val) => {
+      for (const val of Object.values(row)) {
         const td = document.createElement("td");
         td.className = "border px-2 py-1";
         td.textContent = val;
         tr.appendChild(td);
-      });
+      }
       tbody.appendChild(tr);
-    });
+    }
     table.appendChild(tbody);
 
     return table;
@@ -145,17 +145,16 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  var form = document.getElementById("filter-form");
+  const form = document.getElementById("filter-form");
   if (!form) return;
-  form
-    .querySelectorAll(
+  for (const el of form.querySelectorAll(
       `input[name="date"], select[name="fuel_type"], select[name="location"]`
     )
-    .forEach((el) => {
-      el.addEventListener("change", () => {
-        form.submit();
-      });
+  ) {
+    el.addEventListener("change", () => {
+      form.submit();
     });
+  }
 });
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -214,6 +213,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const { points } = data;
 
+    // Get selected components
+    const selectedComponents = Array.from(document.querySelectorAll('input[name="share_components"]:checked'))
+      .map(cb => cb.value);
+
+    // Get email if provided
+    const email = document.getElementById("share-email").value.trim();
+
     try {
       const res = await fetch("/share/create", {
         method: "POST",
@@ -224,6 +230,8 @@ document.addEventListener("DOMContentLoaded", () => {
           date,
           forecastConfig,
           heatmapPoints: points,
+          components: selectedComponents,
+          email: email || null
         }),
       });
       if (!res.ok) throw new Error(`Status ${res.status}`);
