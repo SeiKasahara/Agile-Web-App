@@ -1,4 +1,4 @@
-from flask import app
+from flask import app, render_template
 from flask_mail import Mail, Message
 
 mail = Mail()
@@ -20,5 +20,19 @@ def send_verification_code(current_app, current_user, email, code):
         f"Your verification code is: {code}\n\n"
         "It will expire in 10 minutes.\n\n"
         "If you didn't request this, please ignore."
+    )
+    mail.send(msg)
+
+def send_share_dashboard_email(current_app, current_user, to_email, share_url):
+    """Send an email to share a dashboard with someone."""
+    msg = Message(
+        subject=f"FuelPrice Dashboard Shared by {current_user.first_name}",
+        sender=current_app.config['MAIL_DEFAULT_SENDER'],
+        recipients=[to_email]
+    )
+    msg.html = render_template(
+        'email/share_dashboard.html',
+        user=current_user,
+        share_url=share_url
     )
     mail.send(msg)
