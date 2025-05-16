@@ -76,9 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const handle = () => {
         if (!resp.ok) {
-          previewSlot.innerHTML = `<p class="text-red-500">${
-            data.error || data.message
-          }</p>`;
+          previewSlot.innerHTML = `<p class="text-red-500">${data.error || data.message}</p>`;
           return;
         }
 
@@ -145,18 +143,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("filter-form");
-  if (!form) return;
-  for (const el of form.querySelectorAll(
-    `input[name="date"], select[name="fuel_type"], select[name="location"]`
-  )) {
-    el.addEventListener("change", () => {
-      form.submit();
-    });
-  }
+  const registerFilterForm = (formName) => {
+    const form = document.getElementById(formName);
+    if (!form) return;
+    for (const el of form.querySelectorAll(
+      `input[name="date"], select[name="fuel_type"], select[name="location"]`
+    )) {
+      el.addEventListener("change", () => {
+        form.submit();
+      });
+    }
+  };
+  registerFilterForm("filter-form-desktop");
+  registerFilterForm("filter-form-mobile");
 });
-
-// load js for share modal
-const script = document.createElement("script");
-script.src = "/static/js/share-modal.js";
-document.head.appendChild(script);
