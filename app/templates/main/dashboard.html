@@ -65,7 +65,7 @@
             <!-- Title -->
             <h1 class="text-lg sm:text-xl md:text-2xl font-bold flex-1 text-center">Fuel Price Dashboard</h1>
             <!-- Desktop Filters -->
-            <form id="filter-form" class="hidden md:flex flex-wrap items-center gap-4 md:justify-end">
+            <form id="filter-form-desktop" class="hidden md:flex flex-wrap items-center gap-4 md:justify-end">
                 {{ csrf_field() }}
                 <input id="date_select" type="date" name="date" value="{{ request.args.get('date', '') }}"
                     class="bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none" />
@@ -90,7 +90,7 @@
             </form>
         </div>
         <!-- Filters (mobile) -->
-        <form id="filter-form" class="md:hidden flex flex-wrap gap-4 items-center p-4 bg-gray-800">
+        <form id="filter-form-mobile" class="md:hidden flex flex-wrap gap-4 items-center p-4 bg-gray-800">
             {{ csrf_field() }}
             <input id="date_select" type="date" name="date" value="{{ request.args.get('date', '') }}"
                 class="bg-gray-700 text-white rounded-md px-3 py-2 focus:outline-none" />
