@@ -10,19 +10,24 @@ from datetime import datetime
 from app.utils.mail import send_share_dashboard_email
 import uuid
 
+# Blueprint for share/report related routes
 share_bp = Blueprint('share', __name__, url_prefix='/share')
 share_view_bp = Blueprint('share_view', __name__, url_prefix='/s')
 
+
 def make_share_token(share_id):
+    # Generate a signed token for the shared report using the SECRET_KEY
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     payload = {
         'share_id': share_id,
     }
     return s.dumps(payload)
 
+
 @share_bp.route('/create', methods=['POST'])
 @login_required
 def create_share():
+    # Endpoint for creating a new shared report (AJAX POST)
     data = request.get_json()
     selected_components = data.get('components', [])
     
@@ -59,19 +64,19 @@ def create_share():
         return jsonify({
             'error': 'No data available for the selected components. Please try different components or filters.'
         }), 400
-
+      
     share = SharedReport(
         user_id=current_user.id,
         fuel_type=data['fuel'],
         location=data['loc'],
         date=data['date'],
+
         forecast_config=json.dumps(filtered_data.get('forecast_config', {})),
         heatmap_points_json=json.dumps(filtered_data.get('heatmap_points', [])),
         components=json.dumps(selected_components),
         chart_data=json.dumps(filtered_data.get('chart_data', {})),
         metrics=json.dumps(filtered_data.get('metrics', {}))
-    )
-    
+
     db.session.add(share)
     db.session.commit()
 
@@ -92,8 +97,9 @@ def short_report(share_id):
 
 @share_bp.route('/report')
 def report():
+    # Endpoint for displaying a shared report given a valid token
     token = request.args.get('token')
-    
+
     if not token:
         abort(400)
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
@@ -135,13 +141,12 @@ def render_shared_report(share):
             max_age = days * 24 * 3600
         else:
             max_age = 7 * 24 * 3600
-        
         # For short URLs, check creation time
         if share.created_at:
             age = (datetime.utcnow() - share.created_at).total_seconds()
             if age > max_age:
                 return "Link expired", 403
-
+    # Render the shared report template with all relevant data
     return render_template(
         'share/report.html',
         first_name=share_user.first_name,

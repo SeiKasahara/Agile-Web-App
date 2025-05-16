@@ -10,6 +10,9 @@ The group project for unit CITS5505 agile web development
 
 The application uses Flask-WTF for CSRF (Cross-Site Request Forgery) protection
 
+## Database Schema
+![Fule_app.drawio.png](image/Fule_app.drawio.png)
+
 ## Setup and Installation
 
 ### Prerequisites

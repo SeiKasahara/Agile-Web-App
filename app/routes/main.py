@@ -12,16 +12,20 @@ from app.models import FuelType, PriceRecord, Station, UploadBatch, User
 from app.utils.mail import send_verification_code
 from app import db
 
+# Define blueprint for main routes
 main = Blueprint('main', __name__)
+
 
 @main.route('/')
 def index():
+    # Render the home page
     return render_template('main/index.html', title='Home')
+
 
 @main.route('/profile')
 @login_required
 def profile():
-    # —— 1. Get the latest batch —— 
+    # —— 1. Get the latest batch for the current user ——
     last_batch = (
         UploadBatch.query
         .filter_by(user_id=current_user.id)
@@ -50,15 +54,21 @@ def profile():
             locations += sorted(df['location'].unique().tolist())
     return render_template('main/profile.html', user=current_user, fuel_types=fuel_types, locations=locations)
 
+
+# Allowed file extensions for avatar upload
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+
 def allowed_file(filename):
+    # Check if filename is allowed for upload
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @main.route('/profile/update', methods=['POST'])
 @login_required
 def update_profile():
+    # Handle profile update including avatar upload and user info
     avatar = request.files.get('avatar')
     if avatar and allowed_file(avatar.filename):
         ext = secure_filename(avatar.filename).rsplit('.', 1)[1].lower()
@@ -69,19 +79,20 @@ def update_profile():
         avatar.save(path)
         current_user.avatar = fname
 
+    # Update user first and last name if provided
     first = request.form.get('first_name', '').strip()
-    last  = request.form.get('last_name', '').strip()
+    last = request.form.get('last_name', '').strip()
     if first:
         current_user.first_name = first
     if last:
         current_user.last_name = last
 
+    # Update additional user preferences
     u = current_user
-    u.default_fuel_type  = request.form.get('default_fuel_type', u.default_fuel_type)
+    u.default_fuel_type = request.form.get('default_fuel_type', u.default_fuel_type)
     u.default_date_range = request.form.get('default_date_range', u.default_date_range)
-    u.default_location   = request.form.get('default_location', u.default_location) or None
-
-    u.share_expire_range = request.form.get('share_expire_range',u.share_expire_range)
+    u.default_location = request.form.get('default_location', u.default_location) or None
+    u.share_expire_range = request.form.get('share_expire_range', u.share_expire_range)
 
     try:
         db.session.commit()
@@ -97,9 +108,11 @@ def update_profile():
                    message='Profile updated',
                    avatar_url=avatar_url), 200
 
+
 @main.route('/profile/verify-email', methods=['POST'])
 @login_required
 def verify_email():
+    # Send email verification code to the user (for updating or verifying email)
     email = request.form.get("email")
     code = f"{random.randint(0, 999999):06d}"
     current_user.email_verify_code = code
@@ -108,12 +121,13 @@ def verify_email():
 
     try:
         if email:
+            # Check if email already registered
             if User.query.filter_by(email=email).first():
                 return jsonify({"status": "fail", "message": "Email already registered"}), 400
             else:
                 send_verification_code(current_app, current_user, email, code)
         else:
-            send_verification_code(current_app,current_user, current_user.email, code)
+            send_verification_code(current_app, current_user, current_user.email, code)
     except Exception:
         return jsonify(status='error', message='Failed to send verification code'), 500
 
@@ -123,6 +137,7 @@ def verify_email():
 @main.route('/profile/confirm-email', methods=['POST'])
 @login_required
 def confirm_email():
+    # Confirm the verification code and update user email if valid
     data = request.get_json(silent=True) or {}
     code_input = data.get("code", "").strip()
     new_email = data.get("new_email", "")
@@ -141,7 +156,7 @@ def confirm_email():
 
     if code_input != current_user.email_verify_code:
         return jsonify(status="error", message="Invalid verification code."), 400
-    
+  
     if current_user.email != new_email and new_email:
         current_user.email = new_email
     current_user.verified = True
