@@ -76,8 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const handle = () => {
         if (!resp.ok) {
-          previewSlot.innerHTML = `<p class="text-red-500">${data.error || data.message
-            }</p>`;
+          previewSlot.innerHTML = `<p class="text-red-500">${data.error || data.message}</p>`;
           return;
         }
 
