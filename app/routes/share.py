@@ -75,7 +75,7 @@ def create_share():
         heatmap_points_json=json.dumps(filtered_data.get('heatmap_points', [])),
         components=json.dumps(selected_components),
         chart_data=json.dumps(filtered_data.get('chart_data', {})),
-        metrics=json.dumps(filtered_data.get('metrics', {}))
+        metrics=json.dumps(filtered_data.get('metrics', {})))
 
     db.session.add(share)
     db.session.commit()

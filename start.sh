@@ -3,7 +3,7 @@
 if [ -d ".venv" ]; then
   VENV_DIR=".venv"
 elif [ -d "venv" ]; then
-  VENV_DIR=".venv"
+  VENV_DIR="venv"
 else
   echo "Virtual environment not found!"
   echo "Please create one using: python -m venv venv"
