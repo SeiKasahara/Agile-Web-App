@@ -1,5 +1,6 @@
 from datetime import datetime
 import hashlib
+import uuid
 
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -125,11 +126,15 @@ class SharedReport(db.Model):
     """
     Model for storing shared dashboard/report data with token-based access.
     """
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     fuel_type = db.Column(db.String(50))
-    location = db.Column(db.String(50))
-    date = db.Column(db.String(10))
+    location = db.Column(db.String(100))
+    date = db.Column(db.String(50))
     forecast_config = db.Column(db.Text)
     heatmap_points_json = db.Column(db.Text)
+    components = db.Column(db.Text)  # JSON string of selected components
+    chart_data = db.Column(db.Text)  # JSON string of filtered chart data
+    metrics = db.Column(db.Text)     # JSON string of filtered metrics
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref=db.backref('shared_reports', lazy=True))

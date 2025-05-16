@@ -12,7 +12,7 @@ from app.routes.fuel_upload import fuel_upload_bp
 from app.utils.mail import mail
 from app.utils.error_handlers import register_error_handlers
 from app.routes.dashboard import dashboard_bp
-from app.routes.share import share_bp
+from app.routes.share import share_bp, share_view_bp
 
 # Flask-Migrate for database migrations
 migrate = Migrate()
@@ -64,10 +64,10 @@ def create_app():
     app.register_blueprint(fuel_upload_bp)
     # Register dashboard blueprint
     app.register_blueprint(dashboard_bp)
-    # Register share blueprint
-    app.register_blueprint(share_bp)
 
-    # Create database tables if they do not exist (only on startup)
+    app.register_blueprint(share_bp)
+    app.register_blueprint(share_view_bp)
+
     with app.app_context():
         db.create_all()
 

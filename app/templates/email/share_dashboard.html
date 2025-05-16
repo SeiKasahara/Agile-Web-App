@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description"
+        content="View shared FuelPrice dashboard with insights into fuel prices, trends, and predictions">
+    <meta name="keywords" content="fuel prices, dashboard, analysis, trends, predictions, shared dashboard">
+    <title>FuelPrice Dashboard Shared</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .title {
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-box {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .dashboard-link {
+            display: inline-block;
+            background-color: #4299e1;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .expiry-note {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #e2e8f0;
+            margin: 20px 0;
+        }
+
+        .footer {
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="title">FuelPrice Dashboard Shared</h1>
+
+        <p>Hello,</p>
+
+        <p>{{ user.first_name }} {{ user.last_name }} has shared their FuelPrice dashboard with you. This dashboard
+            provides insights into fuel prices, trends, and predictions.</p>
+
+        <div class="dashboard-box">
+            <p><strong>View the dashboard:</strong></p>
+            <a href="{{ share_url }}" class="dashboard-link">
+                Open Dashboard
+            </a>
+        </div>
+
+        <p class="expiry-note">This link will expire according to the sender's sharing settings.</p>
+
+        <hr class="divider">
+
+        <p class="footer">
+            This email was sent from FuelPrice Analysis WebApp. If you did not expect this email, please ignore it.
+        </p>
+    </div>
+</body>
+
+</html>

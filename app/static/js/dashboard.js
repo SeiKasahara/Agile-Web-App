@@ -118,26 +118,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
-    Object.keys(records[0]).forEach((key) => {
+    for (const key of Object.keys(records[0])) {
       const th = document.createElement("th");
       th.className = "px-2 py-1 bg-gray-200 text-gray-700";
       th.textContent = key;
       headerRow.appendChild(th);
-    });
+    }
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
     const tbody = document.createElement("tbody");
-    records.forEach((row) => {
+    for (const row of records) {
       const tr = document.createElement("tr");
-      Object.values(row).forEach((val) => {
+      for (const val of Object.values(row)) {
         const td = document.createElement("td");
         td.className = "border px-2 py-1";
         td.textContent = val;
         tr.appendChild(td);
-      });
+      }
       tbody.appendChild(tr);
-    });
+    }
     table.appendChild(tbody);
 
     return table;
@@ -145,93 +145,18 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  var form = document.getElementById("filter-form");
+  const form = document.getElementById("filter-form");
   if (!form) return;
-  form
-    .querySelectorAll(
-      `input[name="date"], select[name="fuel_type"], select[name="location"]`
-    )
-    .forEach((el) => {
-      el.addEventListener("change", () => {
-        form.submit();
-      });
+  for (const el of form.querySelectorAll(
+    `input[name="date"], select[name="fuel_type"], select[name="location"]`
+  )) {
+    el.addEventListener("change", () => {
+      form.submit();
     });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const shareBtn = document.getElementById("share-dashboard-btn");
-  const modal = document.getElementById("share-modal");
-  const closeBtn = document.getElementById("close-share-btn");
-  const urlInput = document.getElementById("share-url-input");
-  const copyBtn = document.getElementById("copy-share-btn");
-  const twitterBtn = document.getElementById("twitter-share");
-  const facebookBtn = document.getElementById("facebook-share");
-  const linkedinBtn = document.getElementById("linkedin-share");
-
-  function openModal(shareUrl) {
-    urlInput.value = shareUrl;
-    const encoded = encodeURIComponent(shareUrl);
-    const text = encodeURIComponent("Check out my FuelPrice Dashboard!");
-    twitterBtn.href = `https://twitter.com/intent/tweet?url=${encoded}&text=${text}`;
-    facebookBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${encoded}`;
-    linkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encoded}`;
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
   }
-
-  closeBtn.addEventListener("click", () => {
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-  });
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.classList.add("hidden");
-  });
-
-  copyBtn.addEventListener("click", () => {
-    urlInput.select();
-    document.execCommand("copy");
-    copyBtn.textContent = "Copied!";
-    setTimeout(() => {
-      copyBtn.textContent = "Copy Link";
-    }, 2000);
-  });
-
-  shareBtn.addEventListener("click", async () => {
-    const fuel = document.getElementById("fuel_type_select").value;
-    const loc = document.getElementById("location_select").value;
-    const date = document.getElementById("date_select").value;
-    const forecastChart = Chart.getChart("forecastChart");
-    const forecastConfig = JSON.parse(JSON.stringify(forecastChart.config));
-    const params = new URLSearchParams({
-      fuel_type: fuel,
-      location: loc,
-      date: date,
-    });
-    const url = `/dashboard/data?${params}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    console.log(data);
-
-    const { points } = data;
-
-    try {
-      const res = await fetch("/share/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fuel,
-          loc,
-          date,
-          forecastConfig,
-          heatmapPoints: points,
-        }),
-      });
-      if (!res.ok) throw new Error(`Status ${res.status}`);
-      const { url } = await res.json();
-      openModal(url);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to generate share link. Please try again.");
-    }
-  });
 });
+
+// load js for share modal
+const script = document.createElement("script");
+script.src = "/static/js/share-modal.js";
+document.head.appendChild(script);

@@ -315,10 +315,8 @@ def _gather_dashboard_data(user_id,
         "expensive":   "$0.00"
     }
     if not last_batch:
-        # Return empty chart data and metrics if no batch
-        return chart_data, metrics
+        return None, None
 
-    # Load price records for the batch into a DataFrame
     qry = (
         db.session.query(
             PriceRecord.date.label('publish_date'),
@@ -334,7 +332,9 @@ def _gather_dashboard_data(user_id,
     sql_str = str(qry.statement.compile(compile_kwargs={"literal_binds": True}))
     df = pd.read_sql_query(sql=sql_str, con=db.engine, parse_dates=['publish_date'])
 
-    # Add formatted columns for time grouping
+    if df.empty:
+        return None, None
+
     df['date_str']  = df['publish_date'].dt.strftime('%Y-%m-%d')
     df["date_str"]  = df["publish_date"].dt.strftime("%Y-%m-%d")
     df["week_str"]  = "Week " + df["publish_date"].dt.isocalendar().week.astype(str)
