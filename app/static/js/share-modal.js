@@ -58,6 +58,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
+            // Disable generate button and show loading state
+            disableButton(generateBtn);
+            generateBtn.textContent = "Generating...";
+
             const shareData = await generateShareData();
             const response = await fetch("/share/create", {
                 method: "POST",
@@ -68,14 +72,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 }),
             });
 
-            if (!response.ok) throw new Error(`Status ${response.status}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || `Status ${response.status}`);
+            }
             
-            const { url } = await response.json();
-            setupShareOptions(url);
+            setupShareOptions(data.url);
             showStep2();
         } catch (err) {
             console.error(err);
-            alert("Failed to generate share link. Please try again.");
+            alert(err.message || "Failed to generate share link. Please try again.");
+        } finally {
+            // Re-enable generate button and restore text
+            enableButton(generateBtn);
+            generateBtn.textContent = "Generate Share Link";
         }
     });
 

@@ -34,6 +34,13 @@ def create_share():
         filter_date=data['date']
     )
 
+    # Validate data
+    print(chart_data, metrics)
+    if not chart_data and not metrics:
+        return jsonify({
+            'error': 'No data available for the selected filters. Please try different filters or date range.'
+        }), 400
+
     # Filter data based on selected components
     filtered_data = {}
     if 'metrics' in selected_components:
@@ -46,6 +53,12 @@ def create_share():
         filtered_data['heatmap_points'] = data['heatmapPoints']
     if 'fuel_comparison' in selected_components:
         filtered_data['fuel_comparison'] = chart_data
+
+    # Validate that we have data for at least one selected component
+    if not any(filtered_data.values()):
+        return jsonify({
+            'error': 'No data available for the selected components. Please try different components or filters.'
+        }), 400
 
     share = SharedReport(
         user_id=current_user.id,
@@ -63,23 +76,9 @@ def create_share():
     db.session.commit()
 
     # Generate both long and short URLs
-    token = make_share_token(share_id=share.id)
-    long_url = url_for('share.report', token=token, _external=True)
-    short_url = url_for('share_view.short_report', share_id=share.id, _external=True)
+    url = url_for('share_view.short_report', share_id=share.id, _external=True)
 
-    # Send email if provided
-    if data.get('email'):
-        try:
-            send_share_dashboard_email(
-                current_app=current_app,
-                current_user=current_user,
-                to_email=data['email'],
-                share_url=short_url
-            )
-        except Exception as e:
-            current_app.logger.error(f"Failed to send share email: {e}")
-
-    return jsonify(url=short_url)
+    return jsonify(url=url)
 
 @share_view_bp.route('/<share_id>')
 def short_report(share_id):
@@ -156,3 +155,22 @@ def render_shared_report(share):
         heatmap_points=heatmap_points,
         components=components
     )
+
+@share_bp.route('/send-email', methods=['POST'])
+@login_required
+def send_share_email():
+    data = request.get_json()
+    if not data or not data.get('email') or not data.get('shareUrl'):
+        return jsonify({'error': 'Email and share URL are required'}), 400
+
+    try:
+        send_share_dashboard_email(
+            current_app=current_app,
+            current_user=current_user,
+            to_email=data['email'],
+            share_url=data['shareUrl']
+        )
+        return jsonify({'message': 'Email sent successfully'}), 200
+    except Exception as e:
+        current_app.logger.error(f"Failed to send share email: {e}")
+        return jsonify({'error': 'Failed to send email'}), 500

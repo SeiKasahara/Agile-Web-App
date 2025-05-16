@@ -285,7 +285,7 @@ def _gather_dashboard_data(user_id,
         "expensive":   "$0.00"
     }
     if not last_batch:
-        return chart_data, metrics
+        return None, None
  
     qry = (
         db.session.query(
@@ -301,6 +301,8 @@ def _gather_dashboard_data(user_id,
     
     sql_str = str(qry.statement.compile(compile_kwargs={"literal_binds": True}))
     df = pd.read_sql_query(sql=sql_str, con=db.engine, parse_dates=['publish_date'])
+    if df.empty:
+        return None, None
  
     df['date_str']  = df['publish_date'].dt.strftime('%Y-%m-%d')
     df["date_str"]  = df["publish_date"].dt.strftime("%Y-%m-%d")
