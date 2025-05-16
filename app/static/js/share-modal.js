@@ -148,6 +148,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function disableButton(button) {
+    button.disabled = true;
+    button.classList.add("opacity-50", "cursor-not-allowed");
+  }
+
+  function enableButton(button) {
+    button.disabled = false;
+    button.classList.remove("opacity-50", "cursor-not-allowed");
+  }
+
   async function generateShareData() {
     const fuel = document.getElementById("fuel_type_select").value;
     const loc = document.getElementById("location_select").value;
